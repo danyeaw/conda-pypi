@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add canary testing with conda development builds (#237)
 - Add assertions for the absence of `.pyc` files in converted packages (#216)
 - Add CODEOWNERS file for automatic team assignment (#172)
+- Add test repodata server for testing installations with repodata v3 (#207)
 
 ### Changed
 
