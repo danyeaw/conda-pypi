@@ -1,8 +1,10 @@
-import pytest
+import sys
 from pathlib import Path
 
+import pytest
 from conda.base.context import context, reset_context
 from conda.testing import http_test_server
+from conda.testing.fixtures import CondaCLIFixture
 
 pytest_plugins = (
     # Add testing fixtures and internal pytest plugins here
@@ -10,6 +12,30 @@ pytest_plugins = (
     "conda.testing.fixtures",
 )
 HERE = Path(__file__).parent
+
+# Use the same Python version as the test environment
+PYTHON_VERSION = f"{sys.version_info.major}.{sys.version_info.minor}"
+
+
+@pytest.fixture(scope="session")
+def python_template_env(tmp_path_factory, session_conda_cli: CondaCLIFixture):
+    """Create a session-scoped template Python environment for cloning.
+
+    This template environment is created once at the start of the test session.
+    Individual tests can clone it using `conda create --clone` instead of
+    running a full `conda create` each time, which is faster because it:
+    - Skips the solver (no SAT solving needed)
+    - Skips downloading (packages already cached)
+    - Properly relocates prefixes in metadata and scripts
+
+    Yields:
+        Path to the template environment.
+    """
+    template_path = tmp_path_factory.mktemp("python-template-env")
+    session_conda_cli(
+        "create", "--yes", "--prefix", str(template_path), f"python={PYTHON_VERSION}"
+    )
+    yield template_path
 
 
 @pytest.fixture(autouse=True)
