@@ -14,8 +14,15 @@ from typing import Literal, BinaryIO, Iterable, Tuple
 
 from conda_pypi.utils import sha256_base64url_to_hex
 
-
-SUPPORTED_SCEMES: Tuple[Scheme] = ("platlib", "purelib")
+# Maps wheel scheme names to their conda package directory prefix.
+# An empty string means files go directly under the package root (env prefix).
+SCHEME_TO_CONDA_PREFIX: dict[Scheme, str] = {
+    "purelib": "site-packages",
+    "platlib": "site-packages",
+    "scripts": "bin",
+    "data": "",
+    "headers": "include",
+}
 
 
 # inline version of
@@ -53,17 +60,19 @@ class MyWheelDestination(WheelDestination):
     def write_file(
         self, scheme: Scheme, path: str | PathLike[str], stream: BinaryIO, is_executable: bool
     ) -> RecordEntry:
-        if scheme not in SUPPORTED_SCEMES:
+        if scheme not in SCHEME_TO_CONDA_PREFIX:
             raise ValueError(f"Unsupported scheme: {scheme}")
 
         path = os.fspath(path)
-        dest_path = os.path.join(self.sp_dir, path)
-
+        conda_prefix = SCHEME_TO_CONDA_PREFIX[scheme]
+        if conda_prefix:
+            dest_path = os.path.join(self.target_full_path, conda_prefix, path)
+        else:
+            dest_path = os.path.join(self.target_full_path, path)
         parent_folder = os.path.dirname(dest_path)
         if not os.path.exists(parent_folder):
             os.makedirs(parent_folder)
 
-        # print(f"Writing {dest_path} from {source}")
         with open(dest_path, "wb") as dest:
             hash_, size = installer.utils.copyfileobj_with_hashing(
                 source=stream,
@@ -98,12 +107,14 @@ class MyWheelDestination(WheelDestination):
 
         # paths.json
         paths = []
-        for _, record in records:
+        for scheme, record in records:
             if record.path.startswith(".."):
                 # entry point
                 continue
+            conda_prefix = SCHEME_TO_CONDA_PREFIX.get(scheme, "")
+            conda_path = f"{conda_prefix}/{record.path}" if conda_prefix else record.path
             path = {
-                "_path": f"site-packages/{record.path}",
+                "_path": conda_path,
                 "path_type": "hardlink",
                 "sha256": sha256_base64url_to_hex(record.hash_.value if record.hash_ else None),
                 "size_in_bytes": record.size,
