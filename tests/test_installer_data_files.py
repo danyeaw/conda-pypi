@@ -5,6 +5,7 @@ Tests that data files in wheels are properly installed.
 """
 
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -137,4 +138,29 @@ def test_extract_whl_headers_scheme_file_placement(
     )
     assert not any(p.startswith("site-packages/include") for p in paths), (
         "headers-scheme files must not be nested under site-packages"
+    )
+
+
+@pytest.fixture(scope="session")
+def wheel_with_script() -> Path:
+    """A minimal wheel with a script installed via the .data/scripts/ scheme."""
+    return HERE / "pypi_local_index" / "script-pkg" / "script_pkg-1.0.0-py3-none-any.whl"
+
+
+def test_extract_whl_scripts_scheme_file_placement(
+    wheel_with_script: Path,
+    tmp_path: Path,
+):
+    """scripts-scheme files land in bin/ with executable permissions set."""
+    extract_whl_as_conda_pkg(wheel_with_script, tmp_path)
+
+    script = tmp_path / "bin" / "my-script"
+    assert script.is_file(), f"Script not found at {script}"
+    assert os.access(script, os.X_OK), "Script must be executable"
+
+    paths_json = json.loads((tmp_path / "info" / "paths.json").read_text())
+    paths = {p["_path"] for p in paths_json["paths"]}
+    assert "bin/my-script" in paths, "scripts-scheme path missing from paths.json"
+    assert not any(p.startswith("site-packages/bin") for p in paths), (
+        "scripts-scheme files must not be nested under site-packages"
     )
