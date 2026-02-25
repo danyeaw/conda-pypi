@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import hashlib
 import os
 import sys
 
@@ -12,6 +14,31 @@ from conda.models.match_spec import MatchSpec
 
 
 logger = getLogger(f"conda.{__name__}")
+
+
+def hash_as_base64url(data: bytes, algorithm: str = "sha256") -> str:
+    """Digest as PEP 376 RECORD style base64url (no padding)."""
+    return (
+        base64.urlsafe_b64encode(hashlib.new(algorithm, data).digest()).decode("ascii").rstrip("=")
+    )
+
+
+def sha256_as_base64url(data: bytes) -> str:
+    """SHA256 digest as PEP 376 RECORD style base64url (no padding)."""
+    return hash_as_base64url(data)
+
+
+def sha256_base64url_to_hex(value: str | None) -> str | None:
+    """Convert base64url hash (e.g. from installer) to hex for conda paths.json."""
+    if not value or not value.strip():
+        return None
+    try:
+        value = value.strip()
+        # Ensure value is padded to a multiple of 4 since installer strips padding
+        value += "=" * (-len(value) % 4)
+        return base64.urlsafe_b64decode(value).hex()
+    except ValueError:
+        return None
 
 
 def get_prefix(prefix: os.PathLike = None, name: str = None) -> Path:
