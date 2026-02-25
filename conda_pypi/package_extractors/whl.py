@@ -103,7 +103,7 @@ class MyWheelDestination(WheelDestination):
             if record.path.startswith(".."):
                 # entry point
                 continue
-            conda_prefix = SCHEME_TO_CONDA_PREFIX.get(scheme, "")
+            conda_prefix = SCHEME_TO_CONDA_PREFIX[scheme]
             conda_path = f"{conda_prefix}/{record.path}" if conda_prefix else record.path
             path = {
                 "_path": conda_path,
