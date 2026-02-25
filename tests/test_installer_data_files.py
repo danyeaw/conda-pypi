@@ -106,7 +106,7 @@ def test_extract_whl_data_scheme_file_placement(
     iPython's man page lives in .data/data/share/man/ and caused
     'Unsupported scheme: data' during conda extraction.
     """
-    extract_whl_as_conda_pkg(str(wheel_with_man_page), str(tmp_path))
+    extract_whl_as_conda_pkg(wheel_with_man_page, tmp_path)
 
     man_page = tmp_path / "share" / "man" / "man1" / "man-pkg.1"
     assert man_page.is_file(), f"Man page not found at {man_page}"
@@ -124,7 +124,7 @@ def test_extract_whl_headers_scheme_file_placement(
     tmp_path: Path,
 ):
     """headers-scheme files land in include/, not under site-packages."""
-    extract_whl_as_conda_pkg(str(wheel_with_headers), str(tmp_path))
+    extract_whl_as_conda_pkg(wheel_with_headers, tmp_path)
 
     header_file = tmp_path / "include" / "header_pkg" / "header_pkg.h"
     assert header_file.is_file(), f"Header not found at {header_file}"
