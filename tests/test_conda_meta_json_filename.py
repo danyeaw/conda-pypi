@@ -19,7 +19,7 @@ def test_extract_whl_sets_fn_correctly(
     """
     from conda_pypi.package_extractors.whl import extract_whl_as_conda_pkg
 
-    extract_whl_as_conda_pkg(str(pypi_demo_package_wheel_path), str(tmp_path))
+    extract_whl_as_conda_pkg(pypi_demo_package_wheel_path, tmp_path)
 
     # Check that index.json was created with correct fn field
     index_json_path = tmp_path / "info" / "index.json"
