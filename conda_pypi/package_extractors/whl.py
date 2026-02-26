@@ -8,6 +8,7 @@ from installer.utils import Scheme
 
 import installer.utils
 
+from os import PathLike
 from typing import Literal, BinaryIO, Iterable, Tuple
 
 from conda_pypi.utils import sha256_base64url_to_hex
@@ -50,7 +51,7 @@ class MyWheelDestination(WheelDestination):
         )
 
     def write_file(
-        self, scheme: Scheme, path: str | Path, stream: BinaryIO, is_executable: bool
+        self, scheme: Scheme, path: str | PathLike, stream: BinaryIO, is_executable: bool
     ) -> RecordEntry:
         if scheme not in SCHEME_TO_CONDA_PREFIX:
             raise ValueError(f"Unsupported scheme: {scheme}")
@@ -100,7 +101,7 @@ class MyWheelDestination(WheelDestination):
         paths = []
         for scheme, record in records:
             if record.path.startswith(".."):
-                # entry point
+                # entry points from write_script() use relative paths like "../../../bin/<name>"
                 continue
             conda_prefix = SCHEME_TO_CONDA_PREFIX[scheme]
             conda_path = f"{conda_prefix}/{record.path}" if conda_prefix else record.path
