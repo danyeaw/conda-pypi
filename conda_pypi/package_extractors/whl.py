@@ -26,7 +26,7 @@ SCHEME_TO_CONDA_PREFIX: dict[Scheme, str] = {
 # inline version of
 # from conda.gateways.disk.create import write_as_json_to_file
 def write_as_json_to_file(file_path, obj):
-    json_str = json.dumps(obj, indent=2, sort_keys=True, separators=(",", ": "))
+    json_str = json.dumps(obj, indent=2, sort_keys=True, separators=(",", ":"))
     Path(file_path).write_text(json_str, encoding="utf-8")
 
 
