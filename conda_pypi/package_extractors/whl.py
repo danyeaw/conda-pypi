@@ -31,7 +31,7 @@ def write_as_json_to_file(file_path, obj):
 
 
 class MyWheelDestination(WheelDestination):
-    def __init__(self, target_full_path: str | Path, source: WheelFile) -> None:
+    def __init__(self, target_full_path: str | Path, source: WheelFile):
         self.target_full_path = Path(target_full_path)
         self.sp_dir = self.target_full_path / "site-packages"
         self.entry_points = []
