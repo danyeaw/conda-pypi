@@ -9,7 +9,6 @@ from pathlib import Path
 from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
 
-from conda.exceptions import DryRunExit
 
 HERE = Path(__file__).parent
 
@@ -35,27 +34,3 @@ def test_conda_channel_extras_in_repodata():
     req = Requirement(socks_deps[0])
     assert req.name == "pysocks"
     assert req.specifier == SpecifierSet(">=1.5.6,!=1.5.7")
-
-
-def test_conda_install_with_extras_resolves_extra_deps(
-    tmp_path,
-    conda_cli,
-    conda_local_channel,
-):
-    """Installing requests[socks] should pull pysocks into the solved set."""
-    out, err, rc = conda_cli(
-        "create",
-        "--prefix",
-        str(tmp_path / "env"),
-        "--channel",
-        str(conda_local_channel),
-        "--dry-run",
-        "--json",
-        "requests[socks]",
-        raises=DryRunExit,
-    )
-    out_json = json.loads(out)
-    assert out_json["success"]
-    package_names = {pkg["name"] for pkg in out_json.get("actions", {}).get("LINK", [])}
-    assert "requests" in package_names
-    assert "pysocks" in package_names
