@@ -66,8 +66,15 @@ def test_pypi_to_conda_name_with_hyphens():
     assert pypi_to_conda_name("typing-extensions") == "typing_extensions"
     assert pypi_to_conda_name("scikit-learn") == "scikit-learn"
 
-    # Packages not in the mapping keep their original (canonicalized) name
+    # conda-forge dot names: unmapped fallback preserves dots (not PEP 503 canonical)
+    assert pypi_to_conda_name("jaraco.tidelift") == "jaraco.tidelift"
+    assert pypi_to_conda_name("jaraco.path") == "jaraco.path"
+    # If the only spelling available is already canonical, dots cannot be recovered
+    assert pypi_to_conda_name("jaraco-tidelift") == "jaraco-tidelift"
+
+    # Unmapped: lowercase, _ → -, otherwise unchanged spelling (minus strip)
     assert pypi_to_conda_name("unknown-package") == "unknown-package"
+    assert pypi_to_conda_name("Some_Unknown.Dot") == "some-unknown.dot"
 
 
 def test_metadata_fields_never_none():

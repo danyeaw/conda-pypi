@@ -125,7 +125,7 @@
                     "markdown-it-py==3.0.0[when=\"python>=3.8\"]",
                     "mdurl==0.1.2[when=\"python>=3.7\"]",
                     "multidict==6.0.5[when=\"python>=3.7\"]",
-                    "mypy-extensions==1.0.0[when=\"python>=3.5\"]",
+                    "mypy_extensions==1.0.0[when=\"python>=3.5\"]",
                     "nodeenv==1.9.1[when=\"(python>=2.7 and (python!=3.0 and python!=3.1 and python!=3.2 and python!=3.3 and python!=3.4 and python!=3.5 and python!=3.6))\"]",
                     "packaging==24.1[when=\"python>=3.8\"]",
                     "pandas<3.0.0,>=2.2.2",
@@ -152,7 +152,7 @@
                     "typer<0.13.0,>=0.12.5",
                     "typing_extensions==4.12.2[when=\"python>=3.8\"]",
                     "urllib3==2.2.2[when=\"python>=3.8\"]",
-                    "win32-setctime==1.1.0[when=\"__win\"]",
+                    "win32_setctime==1.1.0[when=\"__win\"]",
                     "yarl==1.9.4[when=\"python>=3.7\"]",
                     "python <4.0.0,>=3.11.0"
                 ],
@@ -242,7 +242,7 @@
                     "markdown-it-py==3.0.0[when=\"python>=3.8\"]",
                     "mdurl==0.1.2[when=\"python>=3.7\"]",
                     "multidict==6.0.5[when=\"python>=3.7\"]",
-                    "mypy-extensions==1.0.0[when=\"python>=3.5\"]",
+                    "mypy_extensions==1.0.0[when=\"python>=3.5\"]",
                     "mysqlclient==2.2.4[when=\"python>=3.8\"]",
                     "nodeenv==1.9.1[when=\"(python>=2.7 and (python!=3.0 and python!=3.1 and python!=3.2 and python!=3.3 and python!=3.4 and python!=3.5 and python!=3.6))\"]",
                     "packaging==24.0[when=\"python>=3.7\"]",
@@ -264,7 +264,7 @@
                     "sqlmodel==0.0.19[when=\"python>=3.7\"]",
                     "typer==0.12.3[when=\"python>=3.7\"]",
                     "typing_extensions==4.12.1[when=\"python>=3.8\"]",
-                    "win32-setctime==1.1.0[when=\"__win\"]",
+                    "win32_setctime==1.1.0[when=\"__win\"]",
                     "yarl==1.9.4[when=\"python>=3.7\"]",
                     "python <4.0,>=3.7"
                 ],
@@ -588,7 +588,7 @@
                     "pexpect>4.3[when=\"__unix\"]",
                     "prompt-toolkit<3.1.0,>=3.0.41",
                     "pygments>=2.4.0",
-                    "stack-data",
+                    "stack_data",
                     "traitlets>=5.13.0",
                     "typing_extensions>=4.6[when=\"python<3.12\"]",
                     "python >=3.10"
@@ -603,7 +603,7 @@
                         "intersphinx-registry",
                         "ipykernel",
                         "ipython[test]",
-                        "matplotlib",
+                        "matplotlib-base",
                         "setuptools>=18.5",
                         "sphinx-rtd-theme",
                         "sphinx>=1.3",
@@ -628,7 +628,7 @@
                         "ipyparallel"
                     ],
                     "qtconsole": [
-                        "qtconsole"
+                        "qtconsole-base"
                     ],
                     "test": [
                         "pytest",
@@ -640,14 +640,14 @@
                     "test-extra": [
                         "ipython[test]",
                         "curio",
-                        "matplotlib!=3.2.0",
+                        "matplotlib-base!=3.2.0",
                         "nbformat",
                         "numpy>=1.23",
                         "pandas",
                         "trio"
                     ],
                     "matplotlib": [
-                        "matplotlib"
+                        "matplotlib-base"
                     ],
                     "all": [
                         "ipython[black,doc,kernel,matplotlib,nbconvert,nbformat,notebook,parallel,qtconsole]",
@@ -678,7 +678,7 @@
                         "email-validator>=2.0.0"
                     ],
                     "timezone": [
-                        "tzdata[when=\"(python>=3.9 and __win)\"]"
+                        "python-tzdata[when=\"(python>=3.9 and __win)\"]"
                     ]
                 },
                 "fn": "pydantic-2.10.6-py3-none-any.whl",
@@ -759,7 +759,7 @@
                         "jaraco.envs>=2.2",
                         "pytest-xdist>=3",
                         "jaraco.path>=3.7.2",
-                        "build[virtualenv]>=1.0.3",
+                        "python-build[virtualenv]>=1.0.3",
                         "filelock>=3.4.0",
                         "ini2toml[lite]>=0.14",
                         "tomli-w>=1.0.0",
@@ -768,7 +768,7 @@
                         "jaraco.develop>=7.21[when=\"(python>=3.9 and __unix)\"]",
                         "pytest-home>=0.5",
                         "pytest-subprocess",
-                        "pyproject-hooks!=1.1",
+                        "pyproject_hooks!=1.1",
                         "jaraco.test>=5.5"
                     ],
                     "doc": [
@@ -784,7 +784,7 @@
                         "sphinx-reredirects",
                         "sphinxcontrib-towncrier",
                         "sphinx-notfound-page<2,>=1",
-                        "pyproject-hooks!=1.1",
+                        "pyproject_hooks!=1.1",
                         "towncrier<24.7"
                     ],
                     "core": [
@@ -919,23 +919,6 @@
                 "subdir": "noarch",
                 "noarch": "python"
             },
-            "typing_extensions-4.14.1-py3_none_any_0": {
-                "url": "https://files.pythonhosted.org/packages/b5/00/d631e67a838026495268c2f6884f3711a15a9a2a96cd244fdaea53b823fb/typing_extensions-4.14.1-py3-none-any.whl",
-                "record_version": 3,
-                "name": "typing_extensions",
-                "version": "4.14.1",
-                "build": "py3_none_any_0",
-                "build_number": 0,
-                "depends": [
-                    "python >=3.9"
-                ],
-                "extra_depends": {},
-                "fn": "typing-extensions-4.14.1-py3-none-any.whl",
-                "sha256": "d1e1e3b58374dc93031d6eda2420a48ea44a36c2b4766a4fdeb3710755731d76",
-                "size": 43906,
-                "subdir": "noarch",
-                "noarch": "python"
-            },
             "typing-inspection-0.4.1-py3_none_any_0": {
                 "url": "https://files.pythonhosted.org/packages/17/69/cd203477f944c353c31bade965f880aa1061fd6bf05ded0726ca845b6ff7/typing_inspection-0.4.1-py3-none-any.whl",
                 "record_version": 3,
@@ -951,6 +934,23 @@
                 "fn": "typing-inspection-0.4.1-py3-none-any.whl",
                 "sha256": "389055682238f53b04f7badcb49b989835495a96700ced5dab2d8feae4b26f51",
                 "size": 14552,
+                "subdir": "noarch",
+                "noarch": "python"
+            },
+            "typing_extensions-4.14.1-py3_none_any_0": {
+                "url": "https://files.pythonhosted.org/packages/b5/00/d631e67a838026495268c2f6884f3711a15a9a2a96cd244fdaea53b823fb/typing_extensions-4.14.1-py3-none-any.whl",
+                "record_version": 3,
+                "name": "typing_extensions",
+                "version": "4.14.1",
+                "build": "py3_none_any_0",
+                "build_number": 0,
+                "depends": [
+                    "python >=3.9"
+                ],
+                "extra_depends": {},
+                "fn": "typing-extensions-4.14.1-py3-none-any.whl",
+                "sha256": "d1e1e3b58374dc93031d6eda2420a48ea44a36c2b4766a4fdeb3710755731d76",
+                "size": 43906,
                 "subdir": "noarch",
                 "noarch": "python"
             },

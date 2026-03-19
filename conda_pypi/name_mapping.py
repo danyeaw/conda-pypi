@@ -1,7 +1,13 @@
 """PyPI ↔ conda package name mapping.
 
-Default table is derived from grayskull (``grayskull_pypi_mapping.json``).
-Keys are PyPI canonical names from :func:`packaging.utils.canonicalize_name`.
+The default table is ``grayskull_pypi_mapping.json`` (regro/grayskull). Keys are
+canonical PyPI names, resolved the same way as the table via
+:func:`packaging.utils.canonicalize_name`.
+
+When a name is missing from the table, the conda name is derived from the
+original string: lowercase, underscores become hyphens, dots are unchanged.
+That often matches conda-forge dotted packages; canonical form alone would map
+``jaraco.tidelift`` to ``jaraco-tidelift``.
 """
 
 from __future__ import annotations
@@ -11,40 +17,36 @@ import pkgutil
 
 from packaging.utils import canonicalize_name
 
-# conda_pypi.name_mapping.grayskull_pypi_mapping['zope-hookable']
-# {
-#     "pypi_name": "zope-hookable",
-#     "conda_name": "zope.hookable",
-#     "import_name": "zope.hookable",
-#     "mapping_source": "regro-bot",
-# }
 grayskull_pypi_mapping: dict[str, dict] = json.loads(
     pkgutil.get_data("conda_pypi", "grayskull_pypi_mapping.json") or "{}"
 )
 
+default_pypi_mapping: dict[str, dict] = dict(grayskull_pypi_mapping)
+
 _to_pypi_name_map: dict[str, dict] = {}
 
 
+def _unmapped_conda_name(pypi_name: str) -> str:
+    return pypi_name.strip().lower().replace("_", "-")
+
+
 def pypi_to_conda_name(pypi_name: str, pypi_to_conda_name_mapping: dict | None = None) -> str:
-    pypi_name = canonicalize_name(pypi_name)
-    return (
+    raw = pypi_name.strip()
+    key = canonicalize_name(raw)
+    table = (
         pypi_to_conda_name_mapping
         if pypi_to_conda_name_mapping is not None
-        else grayskull_pypi_mapping
-    ).get(
-        pypi_name,
-        {
-            "pypi_name": pypi_name,
-            "conda_name": pypi_name,
-            "import_name": None,
-            "mapping_source": None,
-        },
-    )["conda_name"]
+        else default_pypi_mapping
+    )
+    entry = table.get(key)
+    if entry is not None:
+        return entry["conda_name"]
+    return _unmapped_conda_name(raw)
 
 
 def conda_to_pypi_name(name: str) -> str:
     if not _to_pypi_name_map:
-        for value in grayskull_pypi_mapping.values():
+        for value in default_pypi_mapping.values():
             conda_name = value["conda_name"]
             # XXX sometimes conda:pypi is n:1
             _to_pypi_name_map[conda_name] = value
