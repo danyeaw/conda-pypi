@@ -756,28 +756,28 @@
                         "wheel>=0.44.0",
                         "pip>=19.1",
                         "packaging>=24.2",
-                        "jaraco.envs>=2.2",
+                        "jaraco-envs>=2.2",
                         "pytest-xdist>=3",
-                        "jaraco.path>=3.7.2",
+                        "jaraco-path>=3.7.2",
                         "build>=1.0.3",
                         "filelock>=3.4.0",
                         "ini2toml>=0.14",
                         "tomli-w>=1.0.0",
                         "pytest-timeout",
                         "pytest-perf[when=\"__unix\"]",
-                        "jaraco.develop>=7.21[when=\"(python>=3.9 and __unix)\"]",
+                        "jaraco-develop>=7.21[when=\"(python>=3.9 and __unix)\"]",
                         "pytest-home>=0.5",
                         "pytest-subprocess",
                         "pyproject-hooks!=1.1",
-                        "jaraco.test>=5.5"
+                        "jaraco-test>=5.5"
                     ],
                     "doc": [
                         "sphinx>=3.5",
-                        "jaraco.packaging>=9.3",
-                        "rst.linker>=1.9",
+                        "jaraco-packaging>=9.3",
+                        "rst-linker>=1.9",
                         "furo",
                         "sphinx-lint",
-                        "jaraco.tidelift>=1.4",
+                        "jaraco-tidelift>=1.4",
                         "pygments-github-lexers==0.0.5",
                         "sphinx-favicon",
                         "sphinx-inline-tabs",
@@ -790,12 +790,12 @@
                     "core": [
                         "packaging>=24.2",
                         "more-itertools>=8.8",
-                        "jaraco.text>=3.7",
+                        "jaraco-text>=3.7",
                         "importlib-metadata>=6[when=\"python<3.10\"]",
                         "tomli>=2.0.1[when=\"python<3.11\"]",
                         "wheel>=0.43.0",
                         "platformdirs>=4.2.2",
-                        "jaraco.functools>=4",
+                        "jaraco-functools>=4",
                         "more-itertools"
                     ],
                     "check": [
@@ -813,7 +813,7 @@
                         "pytest-mypy",
                         "mypy==1.14.*",
                         "importlib-metadata>=7.0.2[when=\"python<3.10\"]",
-                        "jaraco.develop>=7.21[when=\"__unix\"]"
+                        "jaraco-develop>=7.21[when=\"__unix\"]"
                     ]
                 },
                 "fn": "setuptools-78.1.1-py3-none-any.whl",

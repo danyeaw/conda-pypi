@@ -3,7 +3,7 @@
 import pytest
 from conda.exceptions import ArgumentError
 
-from conda_pypi.translate import validate_name_mapping_format
+from conda_pypi.translate import requires_to_conda, validate_name_mapping_format
 
 
 def test_validate_name_mapping_format_valid():
@@ -94,3 +94,31 @@ def test_validate_name_mapping_format_multiple_errors():
         validate_name_mapping_format(
             {123: {"conda_name": "test"}, "valid": {"conda_name": "test"}}
         )
+
+
+def test_requires_to_conda_marker_translates_when_in_depends():
+    """PEP 508 environment markers become MatchSpec [when=...] on plain deps."""
+    requires, extras = requires_to_conda(
+        ['typing-extensions>=4; python_version < "3.9"'],
+    )
+    assert not extras
+    assert len(requires) == 1
+    # grayskull maps PyPI typing-extensions to conda typing_extensions
+    assert requires[0].startswith("typing_extensions >=")
+    assert requires[0].endswith('[when="python<3.9"]')
+    assert '[when="python<3.9"]' in requires[0]
+
+
+def test_requires_to_conda_marker_extra_and_platform():
+    """Extras go to extras map; non-extra marker parts become [when=...]."""
+    requires, extras = requires_to_conda(
+        [
+            'requests>=2; extra == "dev"',
+            'colorama>=0.4; sys_platform == "win32"',
+        ],
+    )
+    assert "dev" in extras
+    assert any(x.startswith("requests >=") for x in extras["dev"])
+    assert len(requires) == 1
+    assert requires[0].startswith("colorama >=")
+    assert '[when="__win"]' in requires[0]

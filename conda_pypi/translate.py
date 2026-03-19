@@ -17,6 +17,8 @@ from conda.models.match_spec import MatchSpec
 from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
 
+from conda_pypi.markers import extract_marker_condition_and_extras
+
 log = logging.getLogger(__name__)
 
 
@@ -196,26 +198,27 @@ def requires_to_conda(
     extras: Dict[str, List[str]] = defaultdict(list)
     requirements = []
     for requirement in [Requirement(dep) for dep in requires or []]:
-        # requirement.marker.evaluate
-
-        # if requirement.marker and not requirement.marker.evaluate():
-        #     # excluded by environment marker
-        #     # see also marker evaluation according to given sys.executable
-        #     continue
-
         name = canonicalize_name(requirement.name)
         requirement.name = pypi_to_conda_name(name, pypi_to_conda_name_mapping)
-        as_conda = f"{requirement.name} {requirement.specifier}"
+        as_conda = f"{requirement.name} {requirement.specifier}".strip()
 
         if (marker := requirement.marker) is not None:
-            # for var, _, value in marker._markers:
-            for mark in marker._markers:
-                if isinstance(mark, tuple):
-                    var, _, value = mark
-                    if str(var) == "extra":
-                        extras[str(value)].append(as_conda)
+            non_extra_condition, extra_names = extract_marker_condition_and_extras(marker)
+            if extra_names:
+                for extra_name in extra_names:
+                    extra_dep = as_conda
+                    if non_extra_condition:
+                        marker_condition = json.dumps(non_extra_condition)
+                        extra_dep = f"{extra_dep}[when={marker_condition}]"
+                    extras[extra_name].append(extra_dep)
+            else:
+                if non_extra_condition:
+                    marker_condition = json.dumps(non_extra_condition)
+                    requirements.append(f"{as_conda}[when={marker_condition}]")
+                else:
+                    requirements.append(as_conda)
         else:
-            requirements.append(f"{requirement.name} {requirement.specifier}".strip())
+            requirements.append(as_conda)
 
     return requirements, dict(extras)
 
