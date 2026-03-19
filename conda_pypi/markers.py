@@ -173,8 +173,8 @@ def pypi_to_repodata_noarch_whl_entry(
 ) -> dict[str, Any] | None:
     """Convert PyPI JSON API payload to a repodata.json v3.whl entry for a pure-Python wheel.
 
-    Dependency and record names use ``pypi_to_conda_name`` (grayskull mapping by default)
-    so repodata matches :func:`conda_pypi.translate.requires_to_conda`.
+    Dependency and record names use ``pypi_to_conda_name`` (same default table and
+    unmapped-name fallback as :func:`conda_pypi.translate.requires_to_conda`).
     """
     # Find a pure Python wheel (platform tag "none-any")
     wheel_url = None

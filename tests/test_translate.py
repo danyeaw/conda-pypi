@@ -109,6 +109,13 @@ def test_requires_to_conda_marker_translates_when_in_depends():
     assert '[when="python<3.9"]' in requires[0]
 
 
+def test_requires_to_conda_unmapped_dotted_name_preserves_dots():
+    """Unmapped PyPI names with dots must not be turned into canonical hyphen form."""
+    requires, extras = requires_to_conda(["jaraco.tidelift>=1"])
+    assert not extras
+    assert requires[0] == "jaraco.tidelift >=1"
+
+
 def test_requires_to_conda_preserves_pep508_dependency_extras():
     """Dependency optional extras (name[extra1,extra2] version) → MatchSpec brackets."""
     requires, extras_map = requires_to_conda(

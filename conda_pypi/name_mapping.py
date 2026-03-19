@@ -8,6 +8,10 @@ When a name is missing from the table, the conda name is derived from the
 original string: lowercase, underscores become hyphens, dots are unchanged.
 That often matches conda-forge dotted packages; canonical form alone would map
 ``jaraco.tidelift`` to ``jaraco-tidelift``.
+
+Grayskull (or a custom dict for :func:`pypi_to_conda_name`) is still required
+when the conda package name does not follow that rule, for example
+``typing-extensions`` → ``typing_extensions``.
 """
 
 from __future__ import annotations

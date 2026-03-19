@@ -14,7 +14,6 @@ from typing import Any, Optional, List, Dict, Callable
 from conda.exceptions import ArgumentError
 from conda.models.match_spec import MatchSpec
 from packaging.requirements import Requirement
-from packaging.utils import canonicalize_name
 
 from conda_pypi.markers import dependency_extras_suffix, extract_marker_condition_and_extras
 from conda_pypi.name_mapping import conda_to_pypi_name, pypi_to_conda_name
@@ -185,8 +184,8 @@ def requires_to_conda(
     extras: Dict[str, List[str]] = defaultdict(list)
     requirements = []
     for requirement in [Requirement(dep) for dep in requires or []]:
-        name = canonicalize_name(requirement.name)
-        requirement.name = pypi_to_conda_name(name, pypi_to_conda_name_mapping)
+        # Use parsed Requirement.name so unmapped conda names preserve dots (lookup still canonicalizes).
+        requirement.name = pypi_to_conda_name(requirement.name, pypi_to_conda_name_mapping)
         extras_brackets = dependency_extras_suffix(requirement.extras)
         version_specifier = str(requirement.specifier).strip()
         if version_specifier:
