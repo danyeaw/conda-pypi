@@ -47,7 +47,7 @@ def test_conditional_dependencies_stay_in_depends():
 
     record = repodata["v3"]["whl"]["annotated-types-0.7.0-py3_none_any_0"]
     assert any(
-        dep.startswith("typing-extensions>=4.0.0") and '[when="python<3.9"]' in dep
+        dep.startswith("typing_extensions>=4.0.0") and '[when="python<3.9"]' in dep
         for dep in record["depends"]
     )
 

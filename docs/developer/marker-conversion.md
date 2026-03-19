@@ -1,67 +1,69 @@
 # PEP 508 marker conversion
 
-PyPI dependency lines can include [environment markers](https://packaging.python.org/en/latest/specifications/dependency-specifiers/#environment-markers) (`python_version`, `sys_platform`, `extra`, and many others). Conda solvers do not consume PEP 508 marker syntax directly; they work with `MatchSpec` strings, including optional `**[when="…"]**` clauses, so conda-pypi **translates** marker expressions into that shape instead of only evaluating them against the current Python at conversion time.
+PyPI dependency lines can include [environment markers](https://packaging.python.org/en/latest/specifications/dependency-specifiers/#environment-markers) — expressions like `python_version`, `sys_platform`, and `extra` that constrain when a dependency applies. Conda solvers do not consume PEP 508 marker syntax directly; they work with `MatchSpec` strings with optional `[when="…"]` clauses, so conda-pypi translates marker expressions into that shape rather than evaluating them against the current Python at conversion time.
 
-This page describes the translation policy and where it runs in the codebase. It is **not** the same topic as [PEP 668 `EXTERNALLY-MANAGED`](../features.md#environment-marker-files) (environment marker *files* for pip).
+This page covers the translation policy and where it runs in the codebase. It is not the same topic as [PEP 668 `EXTERNALLY-MANAGED`](../features.md#environment-marker-files) (environment marker *files* for pip).
 
-**Dependency optional extras** (brackets on the *dependency* itself, e.g. `httpx[cli]>=0.24`, not the same as environment marker `extra == "dev"`) are copied onto conda dependency strings as `[cli,…]` (sorted when several) via {py:func}`conda_pypi.markers.dependency_extras_suffix`, used in {py:func}`conda_pypi.translate.requires_to_conda` and {py:func}`conda_pypi.markers.pypi_to_repodata_noarch_whl_entry`. Goal: PyPI-faithful metadata and alignment with how `conda pypi install` builds **named** root specs (`pkg[extra1,extra2]` with explicit groups).
+## Dependency optional extras
 
-### Conda `MatchSpec` extras (current limits)
+Brackets on the dependency itself — e.g. `httpx[cli]>=0.24` — indicate PEP 508 optional extras for that package, distinct from the environment marker `extra == "dev"`. conda-pypi copies those brackets onto conda dependency strings (sorted for stability) via {py:func}`conda_pypi.markers.dependency_extras_suffix`. This keeps metadata faithful to PyPI and aligns with how `conda pypi install` builds named root specs like `httpx[cli]`.
 
-conda does **not** yet support **aggregate** optional-extra syntax like `requests[extras=all]` (one spec meaning “install every extra group”). Optional groups remain **named** (`requests[socks]`, `httpx[cli,http2]`) where the stack implements them.
-
-Because that story is still evolving, emitting PEP 508–accurate brackets is primarily **metadata parity** with PyPI; end-to-end solve behavior depends on your conda / rattler version and may not match pip for every edge case until the ecosystem completes extras support.
+conda does not yet support aggregate syntax such as `requests[extras=all]`. Optional groups must be named explicitly. Because this part of the conda ecosystem is still evolving, emitting accurate bracket extras is primarily a metadata-fidelity measure; end-to-end solve behavior depends on your conda or rattler version.
 
 ## PEP 508 variables: usage on PyPI and conda-pypi support
 
-The approximate counts below are how often each marker name appeared in PyPI dependency metadata **as of January 2025** (order: most frequent first). They give a sense of how much of the ecosystem each rule affects.
+The counts below reflect how often each marker variable appeared in PyPI dependency metadata as of January 2025, ordered by frequency. They indicate how much of the ecosystem each translation rule covers.
 
-“**Support**” means: when this variable appears in a marker atom, `_normalize_marker_clause` in {py:mod}`conda_pypi.markers` either emits a **condition fragment** for `when`, drops that atom only (contributes `None` to `and`/`or`), or treats it specially (`extra`).
+"Support" describes what `_normalize_marker_clause` in {py:mod}`conda_pypi.markers` does when that variable appears in a marker atom: emit a condition fragment for `when`, drop the atom silently (contributing nothing to `and`/`or`), or handle it as a special case (`extra`).
 
+| Marker variable | ~Uses on PyPI (Jan 2025) | Support in conda-pypi |
+| --------------- | -----------------------: | --------------------- |
+| `python_version` | 2,034,408 | Translated to a `python…` MatchSpec fragment (e.g. `python<3.11`). `not in "a, b"` becomes a conjunction of `python!=…` clauses. |
+| `platform_system` | 243,706 | Known values map to virtual packages (`__win`, `__linux`, `__osx`, …). Unrecognized values or unsupported operators yield no fragment. |
+| `sys_platform` | 223,549 | Same virtual-package mapping as `platform_system`. `!=` is partial: `!= "win32"` collapses to `__unix`; other negations may yield no fragment. |
+| `platform_machine` | 145,549 | Not supported — atom is always dropped. Conda virtual packages are far more specific than a single PEP 508 arch string. |
+| `platform_python_implementation` | 89,434 | Partial — common implementations (`cpython`, `pypy`, `jython`) drop the atom; no build-string translation yet. |
+| `python_full_version` | 25,840 | Translated using the same rules as `python_version`. |
+| `implementation_name` | 22,158 | Same partial handling as `platform_python_implementation`. |
+| `os_name` | 17,294 | `nt` / `windows` → `__win`, `posix` → `__unix`. `!=` toggles between win and unix-style virtuals for known values. |
+| `platform_release` | 6,316 | Not supported — atom omitted. |
+| `platform_version` | 241 | Not supported — atom omitted. |
+| `implementation_version` | 44 | Not supported — atom omitted. |
+| `extra` | *(not in this census)* | Special — never part of the `when` string. Values route the dependency to `extra_depends` or the package extras map, with any non-`extra` conditions attached as `[when="…"]` on that dependency. |
 
-| Marker variable                  | ~Uses on PyPI (Jan 2025) | Support in conda-pypi                                                                                                                                                                                    |
-| -------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `python_version`                 | 2,034,408                | **Yes** — translated to a `**python`…** MatchSpec fragment (e.g. `python<3.11`). Supports `not in "a, b"` as a conjunction of `python!=…`.                                                               |
-| `platform_system`                | 243,706                  | **Yes** — known values map to virtual packages (`__win`, `__linux`, `__osx`, …). Unknown `==` / other ops yield no fragment.                                                                             |
-| `sys_platform`                   | 223,549                  | **Yes** — same virtual-package mapping as `platform_system`. `**!=`** is partial: e.g. `!= "win32"` (and similar) collapses to `__unix`; other negations may yield no fragment (e.g. `!= "emscripten"`). |
-| `platform_machine`               | 145,549                  | **No** — atom is always dropped (`None`). Conda would need much more specific virtual packages than a single PEP 508 string to model this safely for solves.                                             |
-| `platform_python_implementation` | 89,434                   | **Partial** — `== "Cpython"`, `pypy`, `jython` (case-normalized) drop the atom; other values drop the atom as well (no dedicated “build string” translation yet).                                        |
-| `python_full_version`            | 25,840                   | **Yes** — same rules as `python_version` (`python`… fragments).                                                                                                                                          |
-| `implementation_name`            | 22,158                   | **Partial** — same as `platform_python_implementation` (common implementations drop the atom).                                                                                                           |
-| `os_name`                        | 17,294                   | **Yes** — `nt` / `windows` → `__win`, `posix` → `__unix`; `**!=`** toggles between win vs unix-style virtuals when the positive form is known.                                                           |
-| `platform_release`               | 6,316                    | **No** — not handled by name; atom omitted.                                                                                                                                                              |
-| `platform_version`               | 241                      | **No** — not handled by name; atom omitted.                                                                                                                                                              |
-| `implementation_version`         | 44                       | **No** — not handled by name; atom omitted.                                                                                                                                                              |
-| `extra`                          | *(not in this census)*   | **Special** — never part of the `when` string; values feed `**extra_depends`** / package **extras** lists, possibly with `when` on the dependency from *other* variables in the same marker.             |
+Any PEP 508 variable not listed here also produces no fragment for that atom.
 
+Boolean combinations follow `and` / `or`: if one side has no translation, the combiner (`_combine_conditions`) still emits a useful condition from the other side.
 
-Other PEP 508 environment names (anything not in the table) also produce **no fragment** for that atom until explicitly implemented.
+### Why some marker dimensions are not supported
 
-Boolean combinations use `and` / `or`: if one side has no translation, the combiner may still produce a useful condition from the other side (see `_combine_conditions` in {py:mod}`conda_pypi.markers`).
+`sys_platform` / `platform_system` — negation and disjunction on PyPI are common ("not Windows"), but conda-pypi maps only a small set of known literals to virtual packages. Broader support would require more virtual packages and a clearer policy for uncommon values.
 
-### Design notes (why not “full” platform markers)
+`platform_machine` — arch strings like `x86_64` or `aarch64` are very specific. Mapping them to conda virtual packages for noarch-style metadata is fragile, and the relationship between PyPI platform tags and conda subdirs is not 1:1.
 
-- `**sys_platform` / `platform_system`**: Negation and disjunction on PyPI are common (“not Windows”). conda-pypi maps a **small** set of literals to `**__unix` / `__win` / …** so the conda solver can filter installs; broader support would need more virtuals and more policy.
-- `**platform_machine`**: Very specific (arch strings); mapping to a single conda virtual per wheel family is fragile for noarch-style metadata.
-- `**platform_python_implementation` / `implementation_name**`: A full mapping could align with **build strings** or track-specific packages; today, common “default” interpreters simply **drop** the constraint so the dependency is not incorrectly excluded on noarch paths.
+`platform_python_implementation` / `implementation_name` — a full mapping could align with conda build strings, but today common "default" interpreters simply drop the constraint so the dependency is not incorrectly excluded on noarch paths.
 
 ## Where translation is used
 
+| Location | Role |
+| -------- | ---- |
+| {py:mod}`conda_pypi.markers` | Core AST walk and clause normalization. |
+| {py:func}`conda_pypi.markers.extract_marker_condition_and_extras` | Splits a {py:class}`packaging.markers.Marker` into an optional condition string and any `extra == "…"` names. |
+| {py:func}`conda_pypi.markers.pypi_to_repodata_noarch_whl_entry` | Builds experimental wheel repodata entries (`depends`, `extra_depends`) from a PyPI JSON API response. Record and dependency names use {py:func}`conda_pypi.name_mapping.pypi_to_conda_name` (same as `requires_to_conda`). |
+| {py:func}`conda_pypi.translate.requires_to_conda` | Populates `depends` and `extras` when building `.conda` packages from wheel `METADATA`. Used by `conda pypi install`, `conda pypi convert`, and similar flows. |
 
-| Location                                                          | Role                                                                                                                                                                                                          |
-| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| {py:mod}`conda_pypi.markers`                                      | Core AST walk and clause normalization.                                                                                                                                                                       |
-| {py:func}`conda_pypi.markers.extract_marker_condition_and_extras` | Turns a {py:class}`packaging.markers.Marker` into an optional condition string plus any `extra == "…"` names.                                                                                                 |
-| {py:func}`conda_pypi.markers.pypi_to_repodata_noarch_whl_entry`   | Builds experimental **wheel repodata** entries (`depends`, `extra_depends`) from a PyPI JSON API payload.                                                                                                     |
-| {py:func}`conda_pypi.translate.requires_to_conda`                 | Fills `depends` / `extras` when building `**.conda` packages** from wheel `METADATA` ({py:class}`conda_pypi.translate.CondaMetadata`). Used by `conda pypi install`, `conda pypi convert`, and similar flows. |
+Both paths share the same `[when=…]` encoding: the inner condition is passed through `json.dumps` so quotes and special characters are safe inside the bracket metadata.
 
+### When conditions vanish
 
-Both repodata and `requires_to_conda` share the same `**[when=…]`** encoding: the inner condition is passed through `**json.dumps**` so quotes and special characters are safe inside the bracket metadata.
-
-### Markers that vanish from the `when` string
-
-If **every** translatable atom is dropped and there are **no** `extra` atoms, the dependency may still be recorded **without** `when` (conservative behavior for noarch metadata). That can slightly **over-approximate** install sets compared to a strict PEP 508 evaluator.
+If every translatable atom is dropped and there are no `extra` atoms, the dependency is recorded without a `when` clause. This is conservative — it slightly over-approximates install sets compared to strict PEP 508 evaluation.
 
 ## Implementation note
 
-Translation inspects {attr}`~packaging.markers.Marker._markers`, which is a **private** attribute of `packaging`. All access is confined to {py:mod}`conda_pypi.markers` so upgrades to `packaging` only require changes in one module.
+Translation inspects `Marker._markers`, which is a private attribute of `packaging`. All access is confined to {py:mod}`conda_pypi.markers` so future `packaging` upgrades only require changes in one module.
+
+## Tests
+
+- `tests/test_markers.py` — unit tests for extraction and repodata shaping.
+- `tests/test_translate.py` — `requires_to_conda` marker behavior.
+- `tests/test_conda_local_channel.py` — integration checks against committed wheel repodata fixtures.

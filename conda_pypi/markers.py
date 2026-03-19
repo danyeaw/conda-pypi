@@ -12,16 +12,16 @@ Marker conversion includes:
 """
 
 import json
-from collections.abc import AbstractSet
 from enum import StrEnum
 from typing import Any
 
 from packaging.markers import Marker
 from packaging.requirements import Requirement
-from packaging.utils import canonicalize_name
+
+from conda_pypi.name_mapping import pypi_to_conda_name
 
 
-def dependency_extras_suffix(requirement_extras: AbstractSet[str]) -> str:
+def dependency_extras_suffix(requirement_extras: set[str] | frozenset[str]) -> str:
     """Bracket suffix for conda `MatchSpec` optional dependency extras (PEP 508 extras).
 
     Output order is sorted for stability.
@@ -169,17 +169,12 @@ def extract_marker_condition_and_extras(marker: Marker) -> tuple[str | None, lis
 
 def pypi_to_repodata_noarch_whl_entry(
     pypi_data: dict[str, Any],
+    pypi_to_conda_name_mapping: dict | None = None,
 ) -> dict[str, Any] | None:
-    """
-    Convert PyPI JSON endpoint data to a repodata.json v3.whl entry for a
-    pure Python (noarch) wheel.
+    """Convert PyPI JSON API payload to a repodata.json v3.whl entry for a pure-Python wheel.
 
-    Args:
-        pypi_data: Dictionary containing the complete info from PyPI JSON endpoint
-
-    Returns:
-        Dictionary representing the entry for v3.whl, or None if no pure
-        Python wheel (platform tag "none-any") is found
+    Dependency and record names use ``pypi_to_conda_name`` (grayskull mapping by default)
+    so repodata matches :func:`conda_pypi.translate.requires_to_conda`.
     """
     # Find a pure Python wheel (platform tag "none-any")
     wheel_url = None
@@ -202,7 +197,9 @@ def pypi_to_repodata_noarch_whl_entry(
     for dep in pypi_info.get("requires_dist") or []:
         req = Requirement(dep)
         conda_dep = (
-            canonicalize_name(req.name) + dependency_extras_suffix(req.extras) + str(req.specifier)
+            pypi_to_conda_name(req.name, pypi_to_conda_name_mapping)
+            + dependency_extras_suffix(req.extras)
+            + str(req.specifier)
         )
 
         if req.marker:
@@ -234,7 +231,7 @@ def pypi_to_repodata_noarch_whl_entry(
     entry = {
         "url": wheel_url.get("url", ""),
         "record_version": 3,
-        "name": canonicalize_name(pypi_info.get("name", "")),
+        "name": pypi_to_conda_name(pypi_info.get("name") or "", pypi_to_conda_name_mapping),
         "version": pypi_info.get("version"),
         "build": "py3_none_any_0",
         "build_number": 0,

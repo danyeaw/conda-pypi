@@ -150,7 +150,7 @@
                     "tabulate<0.10.0,>=0.9.0",
                     "trogon<0.6.0,>=0.5.0",
                     "typer<0.13.0,>=0.12.5",
-                    "typing-extensions==4.12.2[when=\"python>=3.8\"]",
+                    "typing_extensions==4.12.2[when=\"python>=3.8\"]",
                     "urllib3==2.2.2[when=\"python>=3.8\"]",
                     "win32-setctime==1.1.0[when=\"__win\"]",
                     "yarl==1.9.4[when=\"python>=3.7\"]",
@@ -263,7 +263,7 @@
                     "sqlalchemy==2.0.30[when=\"python>=3.7\"]",
                     "sqlmodel==0.0.19[when=\"python>=3.7\"]",
                     "typer==0.12.3[when=\"python>=3.7\"]",
-                    "typing-extensions==4.12.1[when=\"python>=3.8\"]",
+                    "typing_extensions==4.12.1[when=\"python>=3.8\"]",
                     "win32-setctime==1.1.0[when=\"__win\"]",
                     "yarl==1.9.4[when=\"python>=3.7\"]",
                     "python <4.0,>=3.7"
@@ -283,7 +283,7 @@
                 "build": "py3_none_any_0",
                 "build_number": 0,
                 "depends": [
-                    "typing-extensions>=4.0.0[when=\"python<3.9\"]",
+                    "typing_extensions>=4.0.0[when=\"python<3.9\"]",
                     "python >=3.8"
                 ],
                 "extra_depends": {},
@@ -304,7 +304,7 @@
                     "exceptiongroup>=1.0.2[when=\"python<3.11\"]",
                     "idna>=2.8",
                     "sniffio>=1.1",
-                    "typing-extensions>=4.5[when=\"python<3.13\"]",
+                    "typing_extensions>=4.5[when=\"python<3.13\"]",
                     "python >=3.9"
                 ],
                 "extra_depends": {
@@ -437,7 +437,7 @@
                 "depends": [
                     "starlette<0.48.0,>=0.40.0",
                     "pydantic!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0,>=1.7.4",
-                    "typing-extensions>=4.8.0",
+                    "typing_extensions>=4.8.0",
                     "python >=3.8"
                 ],
                 "extra_depends": {
@@ -590,7 +590,7 @@
                     "pygments>=2.4.0",
                     "stack-data",
                     "traitlets>=5.13.0",
-                    "typing-extensions>=4.6[when=\"python<3.12\"]",
+                    "typing_extensions>=4.6[when=\"python<3.12\"]",
                     "python >=3.10"
                 ],
                 "extra_depends": {
@@ -609,7 +609,7 @@
                         "sphinx>=1.3",
                         "sphinxcontrib-jquery",
                         "tomli[when=\"python<3.11\"]",
-                        "typing-extensions"
+                        "typing_extensions"
                     ],
                     "kernel": [
                         "ipykernel"
@@ -670,7 +670,7 @@
                 "depends": [
                     "annotated-types>=0.6.0",
                     "pydantic-core==2.27.2",
-                    "typing-extensions>=4.12.2",
+                    "typing_extensions>=4.12.2",
                     "python >=3.8"
                 ],
                 "extra_depends": {
@@ -723,7 +723,7 @@
                 "build": "py3_none_any_0",
                 "build_number": 0,
                 "depends": [
-                    "typing-extensions<5.0,>=4.0.0[when=\"python<3.11\"]",
+                    "typing_extensions<5.0,>=4.0.0[when=\"python<3.11\"]",
                     "pygments<3.0.0,>=2.13.0",
                     "markdown-it-py>=2.2.0",
                     "python >=3.8.0"
@@ -848,7 +848,7 @@
                 "build_number": 0,
                 "depends": [
                     "anyio<5,>=3.6.2",
-                    "typing-extensions>=4.10.0[when=\"python<3.13\"]",
+                    "typing_extensions>=4.10.0[when=\"python<3.13\"]",
                     "python >=3.9"
                 ],
                 "extra_depends": {
@@ -896,7 +896,7 @@
                 "build": "py3_none_any_0",
                 "build_number": 0,
                 "depends": [
-                    "typing-extensions>=4.10.0",
+                    "typing_extensions>=4.10.0",
                     "importlib-metadata>=3.6[when=\"python<3.10\"]",
                     "python >=3.9"
                 ],
@@ -919,10 +919,10 @@
                 "subdir": "noarch",
                 "noarch": "python"
             },
-            "typing-extensions-4.14.1-py3_none_any_0": {
+            "typing_extensions-4.14.1-py3_none_any_0": {
                 "url": "https://files.pythonhosted.org/packages/b5/00/d631e67a838026495268c2f6884f3711a15a9a2a96cd244fdaea53b823fb/typing_extensions-4.14.1-py3-none-any.whl",
                 "record_version": 3,
-                "name": "typing-extensions",
+                "name": "typing_extensions",
                 "version": "4.14.1",
                 "build": "py3_none_any_0",
                 "build_number": 0,
@@ -944,7 +944,7 @@
                 "build": "py3_none_any_0",
                 "build_number": 0,
                 "depends": [
-                    "typing-extensions>=4.12.0",
+                    "typing_extensions>=4.12.0",
                     "python >=3.9"
                 ],
                 "extra_depends": {},
@@ -995,7 +995,7 @@
                 "depends": [
                     "click>=7.0",
                     "h11>=0.8",
-                    "typing-extensions>=4.0[when=\"python<3.11\"]",
+                    "typing_extensions>=4.0[when=\"python<3.11\"]",
                     "python >=3.9"
                 ],
                 "extra_depends": {

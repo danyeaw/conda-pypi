@@ -27,6 +27,15 @@
    :show-inheritance:
 ```
 
+## name_mapping
+
+```{eval-rst}
+.. automodule:: conda_pypi.name_mapping
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
+
 ## markers
 
 ```{eval-rst}

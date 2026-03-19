@@ -127,7 +127,7 @@ def test_pypi_to_repodata_noarch_whl_entry_minimal():
     assert entry["fn"] == "foo_bar-1.0-py3-none-any.whl"
 
     assert any(d.startswith("python >=") for d in entry["depends"])
-    te_dep = next(d for d in entry["depends"] if d.startswith("typing-extensions"))
+    te_dep = next(d for d in entry["depends"] if d.startswith("typing_extensions"))
     assert '[when="python<3.9"]' in te_dep
     colorama_dep = next(d for d in entry["depends"] if d.startswith("colorama"))
     assert '[when="__win"]' in colorama_dep

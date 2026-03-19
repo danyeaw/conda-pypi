@@ -85,6 +85,7 @@ conda-pypi/
 │   ├── cli/             # Command-line interface
 │   ├── build.py         # Wheel to conda conversion
 │   ├── translate.py     # PyPI ↔ Conda metadata translation
+│   ├── name_mapping.py   # Grayskull PyPI → conda package names
 │   ├── markers.py       # PEP 508 markers → MatchSpec `[when=…]`
 │   ├── convert_tree.py  # Dependency resolution
 │   └── ...
