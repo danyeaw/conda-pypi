@@ -1,9 +1,8 @@
 """
 Utility for generating test-specific local channel repodata.
 
-This is test data generation logic for conda-pypi only; it is not intended for
-production repodata generation.
-
+Run this script to regenerate ``tests/conda_local_channel/noarch/repodata.json``
+from the packages listed in ``wheel_packages.txt``. Not intended for production use.
 """
 
 import json
