@@ -22,7 +22,7 @@
                     "eth-utils<2.0.0,>=1.2.0",
                     "hexbytes<1.0.0,>=0.1.0",
                     "lru-dict<2.0.0,>=1.1.6",
-                    "eth-hash<1.0.0,>=0.2.0",
+                    "eth-hash[pycryptodome]<1.0.0,>=0.2.0",
                     "requests<3.0.0,>=2.16.0",
                     "websockets<7.0.0,>=6.0.0",
                     "web3==4.8.2",
@@ -33,7 +33,7 @@
                 ],
                 "extra_depends": {
                     "dev": [
-                        "eth-tester==0.1.0-beta.33",
+                        "eth-tester[py-evm]==0.1.0-beta.33",
                         "py-geth<3.0.0,>=2.0.1",
                         "flake8==3.4.1",
                         "isort<5,>=4.2.15",
@@ -86,7 +86,7 @@
                         "isort<5,>=4.2.15"
                     ],
                     "tester": [
-                        "eth-tester==0.1.0-beta.33",
+                        "eth-tester[py-evm]==0.1.0-beta.33",
                         "py-geth<3.0.0,>=2.0.1"
                     ],
                     "testrpc": [
@@ -176,7 +176,7 @@
                     "configparser",
                     "sqlalchemy",
                     "tabulate",
-                    "tabulate",
+                    "tabulate[widechars]",
                     "python >=3.8"
                 ],
                 "extra_depends": {
@@ -312,9 +312,9 @@
                         "trio>=0.26.1"
                     ],
                     "test": [
-                        "anyio",
+                        "anyio[trio]",
                         "blockbuster>=1.5.23",
-                        "coverage>=7",
+                        "coverage[toml]>=7",
                         "exceptiongroup>=1.2.0",
                         "hypothesis>=4.0",
                         "psutil>=5.9",
@@ -442,23 +442,23 @@
                 ],
                 "extra_depends": {
                     "standard": [
-                        "fastapi-cli>=0.0.8",
+                        "fastapi-cli[standard]>=0.0.8",
                         "httpx>=0.23.0",
                         "jinja2>=3.1.5",
                         "python-multipart>=0.0.18",
                         "email-validator>=2.0.0",
-                        "uvicorn>=0.12.0"
+                        "uvicorn[standard]>=0.12.0"
                     ],
                     "standard-no-fastapi-cloud-cli": [
-                        "fastapi-cli>=0.0.8",
+                        "fastapi-cli[standard-no-fastapi-cloud-cli]>=0.0.8",
                         "httpx>=0.23.0",
                         "jinja2>=3.1.5",
                         "python-multipart>=0.0.18",
                         "email-validator>=2.0.0",
-                        "uvicorn>=0.12.0"
+                        "uvicorn[standard]>=0.12.0"
                     ],
                     "all": [
-                        "fastapi-cli>=0.0.8",
+                        "fastapi-cli[standard]>=0.0.8",
                         "httpx>=0.23.0",
                         "jinja2>=3.1.5",
                         "python-multipart>=0.0.18",
@@ -467,7 +467,7 @@
                         "ujson!=4.0.2,!=4.1.0,!=4.2.0,!=4.3.0,!=5.0.0,!=5.1.0,>=4.0.1",
                         "orjson>=3.2.1",
                         "email-validator>=2.0.0",
-                        "uvicorn>=0.12.0",
+                        "uvicorn[standard]>=0.12.0",
                         "pydantic-settings>=2.0.0",
                         "pydantic-extra-types>=2.0.0"
                     ]
@@ -602,7 +602,7 @@
                         "exceptiongroup",
                         "intersphinx-registry",
                         "ipykernel",
-                        "ipython",
+                        "ipython[test]",
                         "matplotlib",
                         "setuptools>=18.5",
                         "sphinx-rtd-theme",
@@ -638,7 +638,7 @@
                         "packaging"
                     ],
                     "test-extra": [
-                        "ipython",
+                        "ipython[test]",
                         "curio",
                         "matplotlib!=3.2.0",
                         "nbformat",
@@ -650,8 +650,8 @@
                         "matplotlib"
                     ],
                     "all": [
-                        "ipython",
-                        "ipython"
+                        "ipython[black,doc,kernel,matplotlib,nbconvert,nbformat,notebook,parallel,qtconsole]",
+                        "ipython[test,test_extra]"
                     ]
                 },
                 "fn": "ipython-8.30.0-py3-none-any.whl",
@@ -756,28 +756,28 @@
                         "wheel>=0.44.0",
                         "pip>=19.1",
                         "packaging>=24.2",
-                        "jaraco-envs>=2.2",
+                        "jaraco.envs>=2.2",
                         "pytest-xdist>=3",
-                        "jaraco-path>=3.7.2",
-                        "build>=1.0.3",
+                        "jaraco.path>=3.7.2",
+                        "build[virtualenv]>=1.0.3",
                         "filelock>=3.4.0",
-                        "ini2toml>=0.14",
+                        "ini2toml[lite]>=0.14",
                         "tomli-w>=1.0.0",
                         "pytest-timeout",
                         "pytest-perf[when=\"__unix\"]",
-                        "jaraco-develop>=7.21[when=\"(python>=3.9 and __unix)\"]",
+                        "jaraco.develop>=7.21[when=\"(python>=3.9 and __unix)\"]",
                         "pytest-home>=0.5",
                         "pytest-subprocess",
                         "pyproject-hooks!=1.1",
-                        "jaraco-test>=5.5"
+                        "jaraco.test>=5.5"
                     ],
                     "doc": [
                         "sphinx>=3.5",
-                        "jaraco-packaging>=9.3",
-                        "rst-linker>=1.9",
+                        "jaraco.packaging>=9.3",
+                        "rst.linker>=1.9",
                         "furo",
                         "sphinx-lint",
-                        "jaraco-tidelift>=1.4",
+                        "jaraco.tidelift>=1.4",
                         "pygments-github-lexers==0.0.5",
                         "sphinx-favicon",
                         "sphinx-inline-tabs",
@@ -790,12 +790,12 @@
                     "core": [
                         "packaging>=24.2",
                         "more-itertools>=8.8",
-                        "jaraco-text>=3.7",
+                        "jaraco.text>=3.7",
                         "importlib-metadata>=6[when=\"python<3.10\"]",
                         "tomli>=2.0.1[when=\"python<3.11\"]",
                         "wheel>=0.43.0",
                         "platformdirs>=4.2.2",
-                        "jaraco-functools>=4",
+                        "jaraco.functools>=4",
                         "more-itertools"
                     ],
                     "check": [
@@ -813,7 +813,7 @@
                         "pytest-mypy",
                         "mypy==1.14.*",
                         "importlib-metadata>=7.0.2[when=\"python<3.10\"]",
-                        "jaraco-develop>=7.21[when=\"__unix\"]"
+                        "jaraco.develop>=7.21[when=\"__unix\"]"
                     ]
                 },
                 "fn": "setuptools-78.1.1-py3-none-any.whl",
@@ -908,7 +908,7 @@
                         "sphinx-rtd-theme>=1.3.0"
                     ],
                     "test": [
-                        "coverage>=7",
+                        "coverage[toml]>=7",
                         "pytest>=7",
                         "mypy>=1.2.0"
                     ]
