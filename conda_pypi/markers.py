@@ -12,12 +12,23 @@ Marker conversion includes:
 """
 
 import json
+from collections.abc import AbstractSet
 from enum import StrEnum
 from typing import Any
 
 from packaging.markers import Marker
 from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
+
+
+def dependency_extras_suffix(requirement_extras: AbstractSet[str]) -> str:
+    """Bracket suffix for conda `MatchSpec` optional dependency extras (PEP 508 extras).
+
+    Output order is sorted for stability.
+    """
+    if not requirement_extras:
+        return ""
+    return f"[{','.join(sorted(requirement_extras))}]"
 
 
 class MarkerVar(StrEnum):
@@ -190,7 +201,9 @@ def pypi_to_repodata_noarch_whl_entry(
     extra_depends_dict: dict[str, list[str]] = {}
     for dep in pypi_info.get("requires_dist") or []:
         req = Requirement(dep)
-        conda_dep = canonicalize_name(req.name) + str(req.specifier)
+        conda_dep = (
+            canonicalize_name(req.name) + dependency_extras_suffix(req.extras) + str(req.specifier)
+        )
 
         if req.marker:
             non_extra_condition, extra_names = extract_marker_condition_and_extras(req.marker)

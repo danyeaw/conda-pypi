@@ -64,6 +64,12 @@ mapping of PyPI dependencies to conda equivalents and provides cross-platform
 support for package conversion, ensuring that converted packages work
 across different operating systems and architectures.
 
+### Dependency environment markers (PEP 508)
+
+[Environment markers](https://packaging.python.org/en/latest/specifications/dependency-specifiers/#environment-markers) on PyPI requirements (`python_version`, `sys_platform`, `extra`, etc.) are **not** thrown away when conda-pypi builds `.conda` packages from wheels or when it builds experimental wheel channel repodata. They are translated into conda-style dependency strings with optional **`[when="…"]`** metadata (and extras routed to separate dependency lists) for solvers that understand those fields. conda still lacks some `MatchSpec` forms (for example **`pkg[extras=all]`** is not supported); behavior depends on your conda / rattler version.
+
+Details, tables, and caveats: {doc}`developer/marker-conversion`.
+
 (pypi-lines)=
 
 
@@ -89,10 +95,10 @@ conda install -c https://my-wheel-channel requests
 
 Wheels served this way behave like any other conda package.
 
-### Extras
+### Extras and markers
 
 Wheels in a channel can declare [dependency specifier extras](https://packaging.python.org/en/latest/specifications/dependency-specifiers/#extras)
-via an `extra_depends` field in the repodata entry.
+via an `extra_depends` field in the repodata entry. Non-extra parts of the same PEP 508 marker may appear on those strings as **`[when="…"]`**, using the same conversion rules as wheel-to-`.conda` conversion (see {doc}`developer/marker-conversion`). Aggregate extras syntax such as **`[extras=all]`** is a conda limitation, not something conda-pypi can invent in MatchSpec.
 
 ## Editable Package Support
 

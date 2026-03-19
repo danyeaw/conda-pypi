@@ -109,6 +109,16 @@ def test_requires_to_conda_marker_translates_when_in_depends():
     assert '[when="python<3.9"]' in requires[0]
 
 
+def test_requires_to_conda_preserves_pep508_dependency_extras():
+    """Dependency optional extras (name[extra1,extra2] version) → MatchSpec brackets."""
+    requires, extras_map = requires_to_conda(
+        ["httpx[cli,http2]>=0.24.0", 'requests[socks]>=2.0; extra == "dev"'],
+    )
+    assert requires == ["httpx[cli,http2] >=0.24.0"]
+    assert "dev" in extras_map
+    assert extras_map["dev"] == ["requests[socks] >=2.0"]
+
+
 def test_requires_to_conda_marker_extra_and_platform():
     """Extras go to extras map; non-extra marker parts become [when=...]."""
     requires, extras = requires_to_conda(

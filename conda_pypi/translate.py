@@ -17,7 +17,7 @@ from conda.models.match_spec import MatchSpec
 from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
 
-from conda_pypi.markers import extract_marker_condition_and_extras
+from conda_pypi.markers import dependency_extras_suffix, extract_marker_condition_and_extras
 
 log = logging.getLogger(__name__)
 
@@ -200,7 +200,12 @@ def requires_to_conda(
     for requirement in [Requirement(dep) for dep in requires or []]:
         name = canonicalize_name(requirement.name)
         requirement.name = pypi_to_conda_name(name, pypi_to_conda_name_mapping)
-        as_conda = f"{requirement.name} {requirement.specifier}".strip()
+        extras_brackets = dependency_extras_suffix(requirement.extras)
+        version_specifier = str(requirement.specifier).strip()
+        if version_specifier:
+            as_conda = f"{requirement.name}{extras_brackets} {version_specifier}".strip()
+        else:
+            as_conda = f"{requirement.name}{extras_brackets}"
 
         if (marker := requirement.marker) is not None:
             non_extra_condition, extra_names = extract_marker_condition_and_extras(marker)

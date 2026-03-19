@@ -74,6 +74,28 @@ def test_pypi_to_repodata_noarch_whl_entry_requires_none_any_wheel():
     assert pypi_to_repodata_noarch_whl_entry(pypi_data) is None
 
 
+def test_pypi_to_repodata_includes_pep508_dependency_extras():
+    pypi_data = {
+        "urls": [
+            {
+                "packagetype": "bdist_wheel",
+                "filename": "parent-1-py3-none-any.whl",
+                "url": "",
+                "digests": {},
+                "size": 0,
+            }
+        ],
+        "info": {
+            "name": "parent",
+            "version": "1",
+            "requires_dist": ["httpx[cli]>=0.24"],
+        },
+    }
+    entry = pypi_to_repodata_noarch_whl_entry(pypi_data)
+    assert entry is not None
+    assert any("httpx[cli]>=" in d for d in entry["depends"])
+
+
 def test_pypi_to_repodata_noarch_whl_entry_minimal():
     pypi_data = {
         "urls": [

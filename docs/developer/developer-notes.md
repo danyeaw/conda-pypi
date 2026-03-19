@@ -36,7 +36,12 @@ Hash of a regular Python package is something like py312hca03da5_0
 
 ## Environment Markers
 
-Grab parameters from target Python; evaluate marker.
+**Two different ideas** use the word “marker” in this project:
+
+1. **PEP 668 / `EXTERNALLY-MANAGED`** — marker *files* that discourage naive `pip` use (user-facing docs: [Environment marker files](../features.md#environment-marker-files)).
+2. **PEP 508 dependency markers** — boolean expressions on individual `Requires-Dist` lines. conda-pypi **translates** these to conda `MatchSpec` **`[when="…"]`** strings (and extras tables) rather than only evaluating them at metadata build time. See {doc}`marker-conversion`.
+
+For **evaluation** against a live environment (as opposed to translation for the solver), `packaging` supports:
 
 ```python
 some_environment = packaging.markers.default_environment()
@@ -45,9 +50,7 @@ packaging.markers.Marker("python_full_version=='3.12.4'").evaluate(
 )
 ```
 
-`build`, which we use for tests uses environment markers, and extras.
-
-corpus of metadata from pypi can be used to test marker evaluation.
+The test `build` uses environment markers and extras; PyPI metadata corpora are useful for both evaluation and translation tests.
 
 ## Architecture Packages
 

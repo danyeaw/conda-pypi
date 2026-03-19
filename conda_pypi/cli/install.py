@@ -140,7 +140,7 @@ def execute(args: Namespace) -> int:
             req = Requirement(pkg)
             conda_name = pypi_to_conda_name(req.name)
             # Reconstruct properly using packaging's API
-            extras = f"[{','.join(req.extras)}]" if req.extras else ""
+            extras = f"[{','.join(sorted(req.extras))}]" if req.extras else ""
             version_spec = str(req.specifier) if req.specifier else ""
             pkg_spec = f"{conda_name}{extras}{version_spec}"
             match_specs.append(MatchSpec(pkg_spec))
