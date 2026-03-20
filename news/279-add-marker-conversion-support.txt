@@ -1,0 +1,19 @@
+### Enhancements
+
+* Add PEP 508 marker translation when converting wheel to conda metadata (#279).
+
+### Bug fixes
+
+* <news item>
+
+### Deprecations
+
+* <news item>
+
+### Docs
+
+* <news item>
+
+### Other
+
+* <news item>
