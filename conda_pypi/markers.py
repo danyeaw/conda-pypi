@@ -183,7 +183,8 @@ def pypi_to_repodata_noarch_whl_entry(
     """Convert PyPI JSON API payload to a repodata.json v3.whl entry for a pure-Python wheel.
 
     Dependency and record names use ``pypi_to_conda_name`` (same default table and
-    unmapped-name fallback as :func:`conda_pypi.translate.requires_to_conda`).
+    unmapped-name fallback as :func:`conda_pypi.translate.requires_to_conda`). Wheel
+    conversion does not emit ``[when=…]``; this repodata path does.
     """
     # Find a pure Python wheel (platform tag "none-any")
     wheel_url = None

@@ -39,7 +39,7 @@ Hash of a regular Python package is something like py312hca03da5_0
 **Two different ideas** use the word “marker” in this project:
 
 1. **PEP 668 / `EXTERNALLY-MANAGED`** — marker *files* that discourage naive `pip` use (user-facing docs: [Environment marker files](../features.md#environment-marker-files)).
-2. **PEP 508 dependency markers** — boolean expressions on individual `Requires-Dist` lines. conda-pypi **translates** these to conda `MatchSpec` **`[when="…"]`** strings (and extras tables) rather than only evaluating them at metadata build time. See {doc}`marker-conversion`.
+2. **PEP 508 dependency markers** — boolean expressions on individual `Requires-Dist` lines. For experimental repodata, conda-pypi translates these to `[when="…"]` strings (and extras tables); Rattler resolves optional extras experimentally, while conda’s `MatchSpec` does not parse those serialized forms yet. Wheel → `.conda` conversion does not emit `[when=…]` on `depends` yet; see {doc}`marker-conversion`.
 
 For **evaluation** against a live environment (as opposed to translation for the solver), `packaging` supports:
 

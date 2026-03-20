@@ -3,7 +3,6 @@ Convert Python `*.dist-info/METADATA` to conda `info/index.json`
 """
 
 import dataclasses
-import json
 import logging
 import sys
 import time
@@ -15,7 +14,7 @@ from conda.exceptions import ArgumentError
 from conda.models.match_spec import MatchSpec
 from packaging.requirements import Requirement
 
-from conda_pypi.markers import dependency_extras_suffix, extract_marker_condition_and_extras
+from conda_pypi.markers import dependency_extras_suffix
 from conda_pypi.name_mapping import conda_to_pypi_name, pypi_to_conda_name
 
 log = logging.getLogger(__name__)
@@ -193,21 +192,15 @@ def requires_to_conda(
         else:
             as_conda = f"{requirement.name}{extras_brackets}"
 
+        # Wheel METADATA → conda depends: do not emit ``[when=…]`` (conda MatchSpec does not
+        # parse it yet). Match main: only ``extra == …`` is routed to the extras map.
+        # Other markers are omitted from depends.
         if (marker := requirement.marker) is not None:
-            non_extra_condition, extra_names = extract_marker_condition_and_extras(marker)
-            if extra_names:
-                for extra_name in extra_names:
-                    extra_dep = as_conda
-                    if non_extra_condition:
-                        marker_condition = json.dumps(non_extra_condition)
-                        extra_dep = f"{extra_dep}[when={marker_condition}]"
-                    extras[extra_name].append(extra_dep)
-            else:
-                if non_extra_condition:
-                    marker_condition = json.dumps(non_extra_condition)
-                    requirements.append(f"{as_conda}[when={marker_condition}]")
-                else:
-                    requirements.append(as_conda)
+            for mark in marker._markers:
+                if isinstance(mark, tuple):
+                    var, _, value = mark
+                    if str(var) == "extra":
+                        extras[str(value)].append(as_conda)
         else:
             requirements.append(as_conda)
 

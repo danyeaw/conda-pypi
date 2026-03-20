@@ -96,17 +96,13 @@ def test_validate_name_mapping_format_multiple_errors():
         )
 
 
-def test_requires_to_conda_marker_translates_when_in_depends():
-    """PEP 508 environment markers become MatchSpec [when=...] on plain deps."""
+def test_requires_to_conda_marker_without_extra_omitted_from_depends():
+    """Wheel path matches main: non-extra PEP 508 markers are not added to depends."""
     requires, extras = requires_to_conda(
         ['typing-extensions>=4; python_version < "3.9"'],
     )
     assert not extras
-    assert len(requires) == 1
-    # grayskull maps PyPI typing-extensions to conda typing_extensions
-    assert requires[0].startswith("typing_extensions >=")
-    assert requires[0].endswith('[when="python<3.9"]')
-    assert '[when="python<3.9"]' in requires[0]
+    assert requires == []
 
 
 def test_requires_to_conda_unmapped_dotted_name_preserves_dots():
@@ -127,7 +123,7 @@ def test_requires_to_conda_preserves_pep508_dependency_extras():
 
 
 def test_requires_to_conda_marker_extra_and_platform():
-    """Extras go to extras map; non-extra marker parts become [when=...]."""
+    """Extras go to extras map; platform markers are omitted from depends (no [when=…])."""
     requires, extras = requires_to_conda(
         [
             'requests>=2; extra == "dev"',
@@ -136,6 +132,4 @@ def test_requires_to_conda_marker_extra_and_platform():
     )
     assert "dev" in extras
     assert any(x.startswith("requests >=") for x in extras["dev"])
-    assert len(requires) == 1
-    assert requires[0].startswith("colorama >=")
-    assert '[when="__win"]' in requires[0]
+    assert requires == []

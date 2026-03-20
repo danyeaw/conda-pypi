@@ -25,7 +25,7 @@ Implementation details, technical insights, and development considerations
 :::{grid-item-card} Marker conversion
 :link: marker-conversion
 :link-type: doc
-How PEP 508 environment markers become conda `MatchSpec` `when` clauses
+How PEP 508 environment markers become conda `when` clauses
 :::
 
 ::::
@@ -85,8 +85,8 @@ conda-pypi/
 │   ├── cli/             # Command-line interface
 │   ├── build.py         # Wheel to conda conversion
 │   ├── translate.py     # PyPI ↔ Conda metadata translation
-│   ├── name_mapping.py   # Grayskull PyPI → conda package names
-│   ├── markers.py       # PEP 508 markers → MatchSpec `[when=…]`
+│   ├── name_mapping.py  # Grayskull PyPI → conda package names
+│   ├── markers.py       # PEP 508 markers → `[when=…]` (repodata path)
 │   ├── convert_tree.py  # Dependency resolution
 │   └── ...
 ├── tests/               # Test suite

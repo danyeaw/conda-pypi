@@ -1,6 +1,6 @@
 ### Enhancements
 
-* Add PEP 508 marker translation when converting wheel to conda metadata (#279).
+* Add PEP 508 marker conversion for repodata (`v3.whl`) entries with `[when=…]` (#279).
 
 ### Bug fixes
 
