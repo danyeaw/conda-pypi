@@ -44,7 +44,7 @@ def find_package(finder: PackageFinder, package: str):
     """
     Convert :package: to `MatchSpec`; return best `Link`.
     """
-    spec = MatchSpec(package)  # type: ignore
+    spec = MatchSpec(package)  # type: ignore # metaclass confuses type checker
     requirement = conda_to_requires(spec)
     if not requirement:
         raise RuntimeError(f"Could not convert {package} to Python Requirement()!")
