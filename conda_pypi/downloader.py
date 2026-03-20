@@ -13,6 +13,7 @@ from unearth import PackageFinder, TargetPython
 
 from conda_pypi.exceptions import CondaPypiError
 from conda_pypi.translate import conda_to_requires
+from conda_pypi.utils import matchspec_str_for_conda_parse
 
 log = logging.getLogger(__name__)
 
@@ -44,7 +45,8 @@ def find_package(finder: PackageFinder, package: str):
     """
     Convert :package: to `MatchSpec`; return best `Link`.
     """
-    spec = MatchSpec(package)  # type: ignore # metaclass confuses type checker
+    # Strip [when=…] until conda MatchSpec accepts it; see matchspec_str_for_conda_parse.
+    spec = MatchSpec(matchspec_str_for_conda_parse(package))  # type: ignore
     requirement = conda_to_requires(spec)
     if not requirement:
         raise RuntimeError(f"Could not convert {package} to Python Requirement()!")

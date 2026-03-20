@@ -8,12 +8,33 @@ import hashlib
 
 import pytest
 
+from conda.models.match_spec import MatchSpec
+
 from conda_pypi.utils import (
     hash_as_base64url,
+    matchspec_str_for_conda_parse,
     pypi_spec_variants,
     sha256_as_base64url,
     sha256_base64url_to_hex,
 )
+
+
+@pytest.mark.parametrize(
+    "spec_in,expected",
+    [
+        ('jeepney >=0.4.2[when="__linux"]', "jeepney >=0.4.2"),
+        ('tomli >=1.2.2[when="python <3.11"]', "tomli >=1.2.2"),
+        ("requests >=2", "requests >=2"),
+        ("nopython", "nopython"),
+    ],
+)
+def test_matchspec_str_for_conda_parse(spec_in: str, expected: str):
+    assert matchspec_str_for_conda_parse(spec_in) == expected
+
+
+def test_matchspec_str_for_conda_parse_allows_matchspec():
+    s = matchspec_str_for_conda_parse('jeepney >=0.4.2[when="__linux"]')
+    assert MatchSpec(s).name == "jeepney"
 
 
 @pytest.mark.parametrize(

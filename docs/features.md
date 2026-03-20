@@ -66,9 +66,7 @@ across different operating systems and architectures.
 
 ### Dependency environment markers (PEP 508)
 
-[Environment markers](https://packaging.python.org/en/latest/specifications/dependency-specifiers/#environment-markers) on PyPI requirements (`python_version`, `sys_platform`, `extra`, etc.) are **not** thrown away when conda-pypi builds `.conda` packages from wheels or when it builds experimental wheel channel repodata. They are translated into conda-style dependency strings with optional **`[when="…"]`** metadata (and extras routed to separate dependency lists) for solvers that understand those fields. conda still lacks some `MatchSpec` forms (for example **`pkg[extras=all]`** is not supported); behavior depends on your conda / rattler version.
-
-Details, tables, and caveats: {doc}`developer/marker-conversion`.
+PyPI [environment markers](https://packaging.python.org/en/latest/specifications/dependency-specifiers/#environment-markers) are **translated** (not dropped) when building `.conda` packages from wheels or experimental wheel repodata: dependency strings may include **`[when="…"]`**, and extras are split out. Core **`MatchSpec` does not parse `when` today**, so some internal paths strip that suffix before `MatchSpec(...)`; see {doc}`developer/marker-conversion` for scope and limitations. Other `MatchSpec` forms (e.g. **`pkg[extras=all]`**) remain version- and tool-dependent.
 
 (pypi-lines)=
 

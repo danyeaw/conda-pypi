@@ -41,6 +41,21 @@ def sha256_base64url_to_hex(value: str | None) -> str | None:
         return None
 
 
+def matchspec_str_for_conda_parse(spec_str: str) -> str:
+    """Remove a trailing ``[when=…]`` clause so the remainder parses as :class:`~conda.models.match_spec.MatchSpec`.
+
+    **Compatibility:** Supported conda builds omit ``when`` from ``MatchSpec.FIELD_NAMES_SET``,
+    so unconditional parse would fail. Metadata and repodata still **include** ``[when=…]``;
+    only string-based ``MatchSpec`` entry points call this helper. Retire it when conda
+    accepts ``when`` in spec strings or the encoding changes—see ``docs/developer/marker-conversion.md``.
+    """
+    key = "[when="
+    if key not in spec_str:
+        return spec_str
+    cut = spec_str.rfind(key)
+    return spec_str[:cut].rstrip()
+
+
 def get_prefix(prefix: os.PathLike = None, name: str = None) -> Path:
     if prefix:
         return Path(prefix)
@@ -51,6 +66,8 @@ def get_prefix(prefix: os.PathLike = None, name: str = None) -> Path:
 
 
 def pypi_spec_variants(spec_str: str) -> Iterator[str]:
+    # Same MatchSpec-parse limitation as find_package; see matchspec_str_for_conda_parse.
+    spec_str = matchspec_str_for_conda_parse(spec_str)
     yield spec_str
     spec = MatchSpec(spec_str)
     seen = {spec_str}
