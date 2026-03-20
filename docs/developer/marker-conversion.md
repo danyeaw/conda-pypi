@@ -18,24 +18,24 @@ Syntax such as `httpx[cli]>=0.24` denotes PEP 508 optional extras on the depende
 
 Serialized MatchSpec forms such as `pkg[extras=[a,b]]` are separate from PEP 508’s `pkg[a,b]` spelling. Optional extras carried in repodata are resolved by the solver: Rattler implements this as an experimental feature. conda’s `MatchSpec` parser does not yet cover those extended bracket forms or the `[when="…"]` syntax.
 
-## PEP 508 variables (PyPI census, Jan 2025)
+## PEP 508 variables
 
-The table is ordered by how often each variable appears in PyPI dependency metadata. The Support column describes `_normalize_marker_clause` in {py:mod}`conda_pypi.markers`: emit material for `when`, drop the atom, or special-case `extra`.
+The table is ordered by how often each variable appears in PyPI dependency metadata (census from PyPI, January 2025). **Supported** summarizes whether `_normalize_marker_clause` in {py:mod}`conda_pypi.markers` emits a fragment for `when`, partially handles it, or omits it. **Notes** describe what is translated or why it is skipped.
 
-| Marker variable | ~Uses on PyPI (Jan 2025) | Support in conda-pypi |
-| ----------------- | -----------------------: | --------------------- |
-| `python_version` | 2,034,408 | Emits `python…` fragments; `not in "a, b"` becomes multiple `python!=…` terms. |
-| `platform_system` | 243,706 | Maps known literals to virtual packages (`__win`, `__linux`, `__osx`, …). |
-| `sys_platform` | 223,549 | Same mapping; partial handling of `!=` (e.g. `!= "win32"` → `__unix`). |
-| `platform_machine` | 145,549 | Omitted—limited alignment between PEP 508 arch strings and conda virtuals. |
-| `platform_python_implementation` | 89,434 | Partial: common interpreters omitted so noarch paths are not over-restricted. |
-| `python_full_version` | 25,840 | Same rules as `python_version`. |
-| `implementation_name` | 22,158 | Same general approach as `platform_python_implementation`. |
-| `os_name` | 17,294 | `nt` / `windows` → `__win`, `posix` → `__unix`; partial `!=` handling. |
-| `platform_release` | 6,316 | Omitted. |
-| `platform_version` | 241 | Omitted. |
-| `implementation_version` | 44 | Omitted. |
-| `extra` | — | Drives `extra_depends` / extras map; in repodata, remaining conditions may attach as `[when="…"]` on that dependency. |
+| Marker variable | ~Uses on PyPI | Supported | Notes |
+| --- | ---: | :--- | --- |
+| `python_version` | 2,034,408 | Yes | Emits `python…` fragments; `not in "a, b"` becomes multiple `python!=…` terms. |
+| `platform_system` | 243,706 | Yes | Maps known literals to virtual packages (`__win`, `__linux`, `__osx`, …). |
+| `sys_platform` | 223,549 | Partial | Same mapping as `platform_system`; partial handling of `!=` (e.g. `!= "win32"` → `__unix`). |
+| `platform_machine` | 145,549 | No | No fragment; limited alignment between PEP 508 arch strings and conda virtuals. |
+| `platform_python_implementation` | 89,434 | Partial | Common interpreters omitted so noarch paths are not over-restricted. |
+| `python_full_version` | 25,840 | Yes | Same rules as `python_version`. |
+| `implementation_name` | 22,158 | Partial | Same general approach as `platform_python_implementation`. |
+| `os_name` | 17,294 | Partial | `nt` / `windows` → `__win`, `posix` → `__unix`; partial `!=` handling. |
+| `platform_release` | 6,316 | No | Omitted. |
+| `platform_version` | 241 | No | Omitted. |
+| `implementation_version` | 44 | No | Omitted. |
+| `extra` | — | Yes | Drives `extra_depends` / extras map; in repodata, remaining conditions may attach as `[when="…"]` on that dependency. |
 
 Variables not listed produce no fragment. Boolean `and` / `or` use `_combine_conditions` to retain a usable branch when one side cannot be translated.
 
