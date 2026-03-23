@@ -109,17 +109,17 @@ def test_requires_to_conda_unmapped_dotted_name_preserves_dots():
     """Unmapped PyPI names with dots must not be turned into canonical hyphen form."""
     requires, extras = requires_to_conda(["jaraco.tidelift>=1"])
     assert not extras
-    assert requires[0] == "jaraco.tidelift >=1"
+    assert requires[0] == "jaraco.tidelift>=1"
 
 
-def test_requires_to_conda_preserves_pep508_dependency_extras():
-    """Dependency optional extras (name[extra1,extra2] version) → MatchSpec brackets."""
+def test_requires_to_conda_omits_pep508_dependency_extras_for_rattler():
+    """PEP 508 optional dependency extras are omitted from depends (Rattler cannot parse them)."""
     requires, extras_map = requires_to_conda(
         ["httpx[cli,http2]>=0.24.0", 'requests[socks]>=2.0; extra == "dev"'],
     )
-    assert requires == ["httpx[cli,http2] >=0.24.0"]
+    assert requires == ["httpx>=0.24.0"]
     assert "dev" in extras_map
-    assert extras_map["dev"] == ["requests[socks] >=2.0"]
+    assert extras_map["dev"] == ["requests>=2.0"]
 
 
 def test_requires_to_conda_marker_extra_and_platform():
@@ -131,5 +131,5 @@ def test_requires_to_conda_marker_extra_and_platform():
         ],
     )
     assert "dev" in extras
-    assert any(x.startswith("requests >=") for x in extras["dev"])
+    assert any(x.startswith("requests>=") for x in extras["dev"])
     assert requires == []

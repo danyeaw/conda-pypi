@@ -13,7 +13,12 @@ Marker conversion includes:
 
 import json
 import sys
+
+from packaging.markers import Marker
+from packaging.requirements import Requirement
 from typing import Any
+
+from conda_pypi.name_mapping import pypi_to_conda_name
 
 if sys.version_info >= (3, 11):
     from enum import StrEnum
@@ -22,22 +27,6 @@ else:
 
     class StrEnum(str, Enum):
         pass
-
-
-from packaging.markers import Marker
-from packaging.requirements import Requirement
-
-from conda_pypi.name_mapping import pypi_to_conda_name
-
-
-def dependency_extras_suffix(requirement_extras: set[str] | frozenset[str]) -> str:
-    """Bracket suffix for conda `MatchSpec` optional dependency extras (PEP 508 extras).
-
-    Output order is sorted for stability.
-    """
-    if not requirement_extras:
-        return ""
-    return f"[{','.join(sorted(requirement_extras))}]"
 
 
 class MarkerVar(StrEnum):
@@ -176,6 +165,16 @@ def extract_marker_condition_and_extras(marker: Marker) -> tuple[str | None, lis
     return condition, extras
 
 
+def dependency_extras_suffix(requirement_extras: set[str] | frozenset[str]) -> str:
+    """Bracket suffix for conda `MatchSpec` optional dependency extras (PEP 508 extras).
+
+    Output order is sorted for stability.
+    """
+    if not requirement_extras:
+        return ""
+    return f"[{','.join(sorted(requirement_extras))}]"
+
+
 def pypi_to_repodata_noarch_whl_entry(
     pypi_data: dict[str, Any],
     pypi_to_conda_name_mapping: dict | None = None,
@@ -183,8 +182,11 @@ def pypi_to_repodata_noarch_whl_entry(
     """Convert PyPI JSON API payload to a repodata.json v3.whl entry for a pure-Python wheel.
 
     Dependency and record names use ``pypi_to_conda_name`` (same default table and
-    unmapped-name fallback as :func:`conda_pypi.translate.requires_to_conda`). Wheel
-    conversion does not emit ``[when=…]``; this repodata path does.
+    unmapped-name fallback as :func:`conda_pypi.translate.requires_to_conda`).
+    ``depends`` / ``extra_depends`` strings keep PEP 508 optional extras and specifier
+    spelling. ``.whl`` → ``.conda`` conversion uses :func:`conda_dep_string_from_pep508_requirement`
+    instead. This repodata path may emit ``[when=…]``, wheel conversion does not until conda has
+    support for `[when="…"]` syntax in MatchSpec.
     """
     # Find a pure Python wheel (platform tag "none-any")
     wheel_url = None
@@ -206,11 +208,10 @@ def pypi_to_repodata_noarch_whl_entry(
     extra_depends_dict: dict[str, list[str]] = {}
     for dep in pypi_info.get("requires_dist") or []:
         req = Requirement(dep)
-        conda_dep = (
-            pypi_to_conda_name(req.name, pypi_to_conda_name_mapping)
-            + dependency_extras_suffix(req.extras)
-            + str(req.specifier)
-        )
+        req.name = pypi_to_conda_name(req.name, pypi_to_conda_name_mapping)
+        # Preserve PEP 508 spelling (including optional dependency extras). Rattler-safe
+        # normalization applies only to wheel → .conda :func:`conda_pypi.translate.requires_to_conda`.
+        conda_dep = req.name + dependency_extras_suffix(req.extras) + str(req.specifier)
 
         if req.marker:
             non_extra_condition, extra_names = extract_marker_condition_and_extras(req.marker)

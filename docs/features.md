@@ -66,8 +66,7 @@ across different operating systems and architectures.
 
 ### Dependency environment markers (PEP 508)
 
-PyPI [environment markers](https://packaging.python.org/en/latest/specifications/dependency-specifiers/#environment-markers) are translated into `[when="…"]` on wheel repodata entries. When building installable `.conda` packages from wheels, the conversion path does not attach `[when=…]` to dependency strings, because conda’s `MatchSpec` does not parse `when` yet. However, extras from `extra == "…"` are still split out. See {doc}`developer/marker-conversion`. Optional extras in repodata are handled by the solver (Rattler implements extras experimentally).
-
+PyPI [environment markers](https://packaging.python.org/en/latest/specifications/dependency-specifiers/#environment-markers) are translated for the solver where possible. When building installable .conda packages from wheels, `[when="…"]` is not attached to dependency strings — the `extra == "…"` marker is split into per-extra tables, and other marker conditions are omitted from depends. See {doc}`developer/marker-conversion`.
 
 ## Wheel channels
 
@@ -94,9 +93,9 @@ Wheels served this way behave like any other conda package.
 ### Extras and markers
 
 Wheels in a channel can declare [dependency specifier extras](https://packaging.python.org/en/latest/specifications/dependency-specifiers/#extras)
-via an `extra_depends` field in the repodata entry. Other parts of the same PEP 508 marker (everything except `extra == "…"`) may be encoded on those dependency strings as `[when="…"]`. See {doc}`developer/marker-conversion` for how that works and what is omitted. Packages you build locally from wheels into installable `.conda` artifacts do not put `[when="…"]` on `depends` today, because conda’s string-based `MatchSpec` does not parse `when` yet.
+via an `extra_depends` field in the repodata entry.
 
-In the PyPA grammar, extras are a comma-separated list of names. Multiple extras union their requirements, and there is no reserved name meaning “all extras.” Optional extras listed in repodata are resolved by the solver: Rattler supports this experimentally. conda’s `MatchSpec` does not yet parse the same extended serialized forms (for example `[extras=[…]]` alongside `[when="…"]`) end to end.
+In the PyPA grammar, extras are a comma-separated list of names. Multiple extras union their requirements, and there is no reserved name meaning “all extras.” Optional extras in `extra_depends` are resolved by the Rattler solver.
 
 ## Editable Package Support
 

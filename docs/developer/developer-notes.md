@@ -38,19 +38,26 @@ Hash of a regular Python package is something like py312hca03da5_0
 
 **Two different ideas** use the word “marker” in this project:
 
-1. **PEP 668 / `EXTERNALLY-MANAGED`** — marker *files* that discourage naive `pip` use (user-facing docs: [Environment marker files](../features.md#environment-marker-files)).
-2. **PEP 508 dependency markers** — boolean expressions on individual `Requires-Dist` lines. For experimental repodata, conda-pypi translates these to `[when="…"]` strings (and extras tables); Rattler resolves optional extras experimentally, while conda’s `MatchSpec` does not parse those serialized forms yet. Wheel → `.conda` conversion does not emit `[when=…]` on `depends` yet; see {doc}`marker-conversion`.
+1. PEP 668 / `EXTERNALLY-MANAGED` — marker *files* that discourage naive `pip` use (user-facing docs: [Environment marker files](../features.md#environment-marker-files)).
+2. PEP 508 dependency markers — boolean expressions on individual `Requires-Dist` lines. See {doc}`marker-conversion`.
 
-For **evaluation** against a live environment (as opposed to translation for the solver), `packaging` supports:
+The internal implementation walks the `Marker._markers` AST directly. The AST is a nested list of `(Variable, Op, Value)` tuples interleaved with "and" / "or" strings. For example, `python_version > "3.10"` or `(python_version == "3.11" and os_name == "unix")` parses to:
 
 ```python
-some_environment = packaging.markers.default_environment()
-packaging.markers.Marker("python_full_version=='3.12.4'").evaluate(
-    environment=some_environment
-)
+[
+    (Variable("python_version"), Op(">"), Value("3.10")),
+    "or",
+    [
+        (Variable("python_version"), Op("=="), Value("3.11")),
+        "and",
+        (Variable("os_name"), Op("=="), Value("unix")),
+    ],
+]
 ```
 
-The test `build` uses environment markers and extras; PyPI metadata corpora are useful for both evaluation and translation tests.
+`_normalize_marker_clause` in {py:mod}`conda_pypi.markers` recurses over this structure and emits conda fragments for known variables (`python`, `__win`, `__linux`, etc.), combining them with `_combine_conditions`. Unknown variables produce no fragment.
+
+`Marker._markers` from the `packaging` library is private, however there aren't other methods of getting at the parsed AST structure without reimplementing it.
 
 ## Architecture Packages
 
@@ -67,4 +74,4 @@ channel for later. (But what if we are in CI?)
 
 'editable' command:
 
-Modern replacement for conda-build develop; works like pip install -e . --no-build-isolation
+Modern replacement for conda-build develop. Works like pip install -e . --no-build-isolation
