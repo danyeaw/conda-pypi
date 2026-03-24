@@ -74,4 +74,4 @@ channel for later. (But what if we are in CI?)
 
 'editable' command:
 
-Modern replacement for conda-build develop. Works like pip install -e . --no-build-isolation
+Modern replacement for conda-build develop. Works like `pip install -e . --no-build-isolation`
