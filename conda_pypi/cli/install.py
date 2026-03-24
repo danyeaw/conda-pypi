@@ -10,6 +10,7 @@ from packaging.requirements import InvalidRequirement, Requirement
 from conda_pypi import convert_tree, build, installer
 from conda_pypi.downloader import get_package_finder
 from conda_pypi.main import run_conda_install
+from conda_pypi.markers import dependency_extras_suffix
 from conda_pypi.translate import pypi_to_conda_name, remap_match_spec_name
 from conda_pypi.utils import get_prefix
 
@@ -140,7 +141,7 @@ def execute(args: Namespace) -> int:
             req = Requirement(pkg)
             conda_name = pypi_to_conda_name(req.name)
             # Reconstruct properly using packaging's API
-            extras = f"[{','.join(sorted(req.extras))}]" if req.extras else ""
+            extras = dependency_extras_suffix(req.extras)
             version_spec = str(req.specifier) if req.specifier else ""
             pkg_spec = f"{conda_name}{extras}{version_spec}"
             match_specs.append(MatchSpec(pkg_spec))
