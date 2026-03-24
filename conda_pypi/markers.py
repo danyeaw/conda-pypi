@@ -69,53 +69,45 @@ def _normalize_marker_clause(marker_name: str, op: str, marker_value: str) -> st
     - ("python_version", "<", "3.11") -> "python<3.11"
     - ("python_version", "not in", "3.0, 3.1") -> "(python!=3.0 and python!=3.1)"
     - ("implementation_name", "==", "cpython") -> None
+
+    The following marker_names are unsupported and return None:
+    - "platform_machine"
+    - "implementation_name"
+    - "platform_python_implementation"
+    - "extra"
+
     """
-    marker_name = marker_name.lower()
+    # `platform.system()` returns capitalized strings like "Darwin", "Linux", "Windows", etc.
     marker_value = marker_value.lower()
 
     if marker_name in {MarkerVar.PYTHON_VERSION, MarkerVar.PYTHON_FULL_VERSION}:
         if op == MarkerOp.NOT_IN:
-            excluded_versions = [
-                version.strip() for version in marker_value.split(",") if version.strip()
+            clauses = [
+                f"python!={version}"
+                for value in marker_value.split(",")
+                if (version := value.strip())
             ]
-            if not excluded_versions:
+            if not clauses:
                 return None
-            clauses = [f"python!={version}" for version in excluded_versions]
-            if len(clauses) == 1:
-                return clauses[0]
-            return f"({' and '.join(clauses)})"
+            return clauses[0] if len(clauses) == 1 else f"({' and '.join(clauses)})"
         return f"python{op}{marker_value}"
-
-    if marker_name == MarkerVar.EXTRA and op == MarkerOp.EQ:
-        return None
 
     if marker_name in {MarkerVar.SYS_PLATFORM, MarkerVar.PLATFORM_SYSTEM}:
         mapped = SYSTEM_TO_VIRTUAL_PACKAGE.get(marker_value)
         if op == MarkerOp.EQ and mapped:
             return mapped
         if op == MarkerOp.NE and marker_value in {"win32", "windows", "cygwin"}:
+            # != emscripten is unsupported
             return "__unix"
-        if op == MarkerOp.NE and marker_value == "emscripten":
-            return None
         return None
 
     if marker_name == MarkerVar.OS_NAME:
         mapped = OS_NAME_TO_VIRTUAL_PACKAGE.get(marker_value)
-        if not mapped:
+        if not mapped or op not in {MarkerOp.EQ, MarkerOp.NE}:
             return None
         if op == MarkerOp.EQ:
             return mapped
-        if op == MarkerOp.NE:
-            return "__unix" if mapped == "__win" else "__win"
-        return None
-
-    if marker_name in {MarkerVar.IMPLEMENTATION_NAME, MarkerVar.PLATFORM_PYTHON_IMPLEMENTATION}:
-        if marker_value in {"cpython", "pypy", "jython"}:
-            return None
-        return None
-
-    if marker_name == MarkerVar.PLATFORM_MACHINE:
-        return None
+        return "__unix" if mapped == "__win" else "__win"
 
     return None
 
