@@ -12,7 +12,7 @@ When building `.conda` packages from wheel `METADATA` ({py:func}`conda_pypi.tran
 
 Translation does not evaluate markers against the build machine at conversion time. Output is shaped for conda-style metadata and repodata.
 
-Additionally, this topic only about dependency markers, not marker files per [PEP 668 `EXTERNALLY-MANAGED`](../features.md#environment-marker-files).
+Additionally, this topic only pertains to dependency markers, not marker files per [PEP 668 `EXTERNALLY-MANAGED`](../features.md#environment-marker-files).
 
 ## Optional dependency extras
 
