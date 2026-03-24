@@ -158,6 +158,14 @@ def dependency_extras_suffix(requirement_extras: set[str] | frozenset[str]) -> s
     return f"[{','.join(sorted(requirement_extras))}]"
 
 
+def dependency_when(dependency: str, condition: str | None) -> str:
+    if not condition:
+        return dependency
+    # ensure proper quoting
+    condition = json.dumps(condition)
+    return f"{dependency}[when={condition}]"
+
+
 def pypi_to_repodata_noarch_whl_entry(
     pypi_data: dict[str, Any],
     pypi_to_conda_name_mapping: dict | None = None,
@@ -194,23 +202,16 @@ def pypi_to_repodata_noarch_whl_entry(
         # normalization applies only to wheel → .conda :func:`conda_pypi.translate.requires_to_conda`.
         conda_dep = req.name + dependency_extras_suffix(req.extras) + str(req.specifier)
 
-        if req.marker:
-            non_extra_condition, extra_names = extract_marker_condition_and_extras(req.marker)
-            if extra_names:
-                for extra_name in extra_names:
-                    extra_dep = conda_dep
-                    if non_extra_condition:
-                        marker_condition = json.dumps(non_extra_condition)
-                        extra_dep = f"{extra_dep}[when={marker_condition}]"
-                    extra_depends_dict.setdefault(extra_name, []).append(extra_dep)
-            else:
-                if non_extra_condition:
-                    marker_condition = json.dumps(non_extra_condition)
-                    depends_list.append(f"{conda_dep}[when={marker_condition}]")
-                else:
-                    depends_list.append(conda_dep)
+        non_extra_condition, extra_names = (
+            extract_marker_condition_and_extras(req.marker) if req.marker else (None, [])
+        )
+        full_dep = dependency_when(conda_dep, non_extra_condition)
+
+        if extra_names:
+            for extra_name in extra_names:
+                extra_depends_dict.setdefault(extra_name, []).append(full_dep)
         else:
-            depends_list.append(conda_dep)
+            depends_list.append(full_dep)
 
     python_requires = pypi_info.get("requires_python")
     if python_requires:
