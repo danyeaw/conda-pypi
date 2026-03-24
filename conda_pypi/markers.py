@@ -121,7 +121,6 @@ def extract_marker_condition_and_extras(marker: Marker) -> tuple[str | None, lis
     - `sys_platform == "win32"` -> `("__win", [])`
     """
     extras: list[str] = []
-    seen_extras: set[str] = set()
 
     def parse_marker_node(node: Any) -> str | None:
         if isinstance(node, tuple) and len(node) == 3:
@@ -130,31 +129,23 @@ def extract_marker_condition_and_extras(marker: Marker) -> tuple[str | None, lis
             marker_value = _marker_value(node[2])
 
             if marker_name.lower() == MarkerVar.EXTRA and op == MarkerOp.EQ:
-                extra_name = marker_value.lower()
-                if extra_name not in seen_extras:
-                    seen_extras.add(extra_name)
-                    extras.append(extra_name)
+                extras.append(marker_value.lower())
                 return None
 
             return _normalize_marker_clause(marker_name, op, marker_value)
 
-        if isinstance(node, list):
-            if not node:
-                return None
-
+        if isinstance(node, list) and node:
             condition_expr = parse_marker_node(node[0])
             for op, rhs in zip(node[1::2], node[2::2]):
                 right_condition = parse_marker_node(rhs)
-                condition_expr = _combine_conditions(
-                    condition_expr, str(op).lower(), right_condition
-                )
+                condition_expr = _combine_conditions(condition_expr, op.lower(), right_condition)
             return condition_expr
 
         return None
 
     # Marker._markers is a private packaging attribute; keep access isolated here.
     condition = parse_marker_node(getattr(marker, "_markers", []))
-    return condition, extras
+    return condition, list(dict.fromkeys(extras))
 
 
 def dependency_extras_suffix(requirement_extras: set[str] | frozenset[str]) -> str:
