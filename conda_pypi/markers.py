@@ -172,17 +172,15 @@ def pypi_to_repodata_noarch_whl_entry(
     support for `[when="…"]` syntax in MatchSpec.
     """
     # Find a pure Python wheel (platform tag "none-any")
-    wheel_url = None
-    for url_entry in pypi_data.get("urls", []):
-        if url_entry.get("packagetype") != "bdist_wheel":
+    for wheel_url in pypi_data.get("urls", []):
+        if wheel_url.get("packagetype") != "bdist_wheel":
             continue
-        filename = url_entry.get("filename", "")
-        if not filename.endswith("-none-any.whl"):
+        if not wheel_url.get("filename", "").endswith("-none-any.whl"):
             continue
-        wheel_url = url_entry
+        # found valid wheel_url
         break
-
-    if not wheel_url:
+    else:
+        # no wheel_url found
         return None
 
     pypi_info = pypi_data.get("info")
