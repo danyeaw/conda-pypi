@@ -77,9 +77,6 @@ def _normalize_marker_clause(marker_name: str, op: str, marker_value: str) -> st
     - "extra"
 
     """
-    # `platform.system()` returns capitalized strings like "Darwin", "Linux", "Windows", etc.
-    marker_value = marker_value.lower()
-
     if marker_name in {MarkerVar.PYTHON_VERSION, MarkerVar.PYTHON_FULL_VERSION}:
         if op == MarkerOp.NOT_IN:
             clauses = [
@@ -126,10 +123,10 @@ def extract_marker_condition_and_extras(marker: Marker) -> tuple[str | None, lis
         if isinstance(node, tuple) and len(node) == 3:
             marker_name = _marker_value(node[0])
             op = _marker_value(node[1])
-            marker_value = _marker_value(node[2])
+            marker_value = _marker_value(node[2]).lower()
 
-            if marker_name.lower() == MarkerVar.EXTRA and op == MarkerOp.EQ:
-                extras.append(marker_value.lower())
+            if marker_name == MarkerVar.EXTRA and op == MarkerOp.EQ:
+                extras.append(marker_value)
                 return None
 
             return _normalize_marker_clause(marker_name, op, marker_value)
