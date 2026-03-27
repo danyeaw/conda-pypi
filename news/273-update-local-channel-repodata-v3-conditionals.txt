@@ -1,6 +1,6 @@
 ### Enhancements
 
-* Update local wheel-channel test repodata to `v3.whl`, `extra_depends`, and normalized `when` conditions (#273)
+* Update local wheel-channel test repodata to `v3.whl`, `extra_depends`, and normalized `when` conditions. (#273)
 
 ### Bug fixes
 
