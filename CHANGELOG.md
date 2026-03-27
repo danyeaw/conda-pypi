@@ -2,6 +2,26 @@
 
 [//]: # (current developments)
 
+## 0.6.0 (2026-03-27)
+
+### Enhancements
+
+* Update local wheel-channel test repodata to `v3.whl`, `extra_depends`, and normalized `when` conditions. (#273)
+* Add PEP 508 marker conversion for repodata (`v3.whl`) entries with `[when=…]`. (#279)
+
+### Bug fixes
+
+* Fix missing dependency on `conda-package-streaming`. (#272)
+
+### Contributors
+
+* @agriyakhetarpal
+* @danyeaw
+* @kenodegard
+* @pre-commit-ci[bot]
+
+
+
 ## 0.5.0 (2026-03-02)
 
 ### Enhancements
