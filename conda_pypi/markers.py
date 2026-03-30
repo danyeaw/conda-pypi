@@ -220,7 +220,6 @@ def pypi_to_repodata_noarch_whl_entry(
     # Build the repodata entry
     entry = {
         "url": wheel_url.get("url", ""),
-        "record_version": 3,
         "name": pypi_to_conda_name(pypi_info.get("name") or "", pypi_to_conda_name_mapping),
         "version": pypi_info.get("version"),
         "build": "py3_none_any_0",

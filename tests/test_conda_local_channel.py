@@ -29,6 +29,14 @@ def test_conda_channel(conda_local_channel):
     assert len(repodata["v3"]["whl"]) > 0
 
 
+def test_local_channel_repodata_no_per_package_record_version():
+    """Wheel entries from generate_noarch_wheel_repodata use top-level repodata_version only."""
+    repodata = json.loads((HERE / "conda_local_channel" / "noarch" / "repodata.json").read_text())
+    assert repodata.get("repodata_version") == 3
+    for record in repodata["v3"]["whl"].values():
+        assert "record_version" not in record
+
+
 def test_conda_channel_extras_in_repodata():
     """Verify that wheel entries keep extras as a dedicated repodata field."""
     repodata = json.loads((HERE / "conda_local_channel" / "noarch" / "repodata.json").read_text())
