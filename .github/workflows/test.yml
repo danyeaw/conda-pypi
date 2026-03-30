@@ -17,8 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # detect whether any code changes are included in this PR or push (monitored paths).
-  # On pull_request, paths-filter uses the GitHub API. On push/tag it uses git — checkout required.
+  # detect whether any code changes are included in this PR
   changes:
     runs-on: ubuntu-slim
     permissions:
