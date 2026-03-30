@@ -2,7 +2,7 @@
 
 [//]: # (current developments)
 
-## 0.6.0 (2026-03-27)
+## 0.6.0 (2026-03-30)
 
 ### Enhancements
 
