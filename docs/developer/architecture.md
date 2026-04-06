@@ -34,7 +34,7 @@ Environment Validation
          ↓
 Package Classification
          ↓
-    VCS/Editable? ----Yes---→ Direct pip install --> Deploy EXTERNALLY-MANAGED
+    Editable (-e)? ----Yes---→ Build local project to .conda --> Install --> Deploy EXTERNALLY-MANAGED
          ↓ No
 Dependency Resolution
          ↓

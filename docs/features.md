@@ -19,10 +19,11 @@ conda-first approach. If a dependency is available on conda channels, it will
 be installed with `conda` directly. If not available on conda channels, the
 dependency will be converted from PyPI to `.conda` format.
 
-The system uses multiple sources for package name mapping which are
-currently hardcoded.  In the future, it will use other means to have
-a more active way to get current name mappings. VCS and editable packages
-are handled as special cases and installed directly with `pip install --no-deps`.
+PyPI names are mapped to conda names with a bundled Grayskull table, plus a
+simple normalization rule when a package is not listed. `conda pypi convert`
+can load a replacement table from a JSON file via `--name-mapping`. With
+`-e` / `--editable`, a local project directory is built into a `.conda`
+package and installed.
 
 You can preview what would be installed without making changes using
 `--dry-run`, install packages in editable development mode with `--editable`
@@ -99,28 +100,21 @@ In the PyPA grammar, extras are a comma-separated list of names. Multiple extras
 
 ## Editable Package Support
 
-`conda-pypi` provides comprehensive support for editable (development)
-installations, making it ideal for development environments where code is
-frequently modified. The system supports both version control system packages
-and local packages.
+`conda-pypi` supports editable (development) installs for local project
+directories: the project is built into a `.conda` package and installed into
+the environment. This is intended for workflows where you edit code in a
+checkout on disk.
 
-For VCS packages, you can install directly from git URLs with automatic
-cloning. The system caches VCS repositories locally for improved performance
-and manages temporary directories and repository clones automatically. Local
-package support allows you to install packages from local project directories
-in editable mode, which is perfect for active development workflows.
+Pip-style VCS requirement URLs are not yet supported.
 
 Here are some common usage patterns for editable installations:
 
 ```bash
-# Install from git repository in editable mode
-conda pypi install -e git+https://github.com/user/project.git
-
 # Install local project in editable mode
 conda pypi install -e ./my-project/
 
-# Multiple editable packages
-conda pypi install -e ./package1/ -e git+https://github.com/user/package2.git
+# Multiple local editable packages
+conda pypi install -e ./package1/ -e ./package2/
 ```
 
 ## `conda env` integrations

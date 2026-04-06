@@ -87,9 +87,6 @@ preparing packages for offline installation.
 # Install local project in editable mode
 conda pypi install -e ./my-project/
 
-# Install from version control in editable mode
-conda pypi install -e git+https://github.com/user/project.git
-
 # Preview what would be installed
 conda pypi install --dry-run niquests pandas
 ```
