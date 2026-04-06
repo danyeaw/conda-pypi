@@ -105,7 +105,6 @@ directories: the project is built into a `.conda` package and installed into
 the environment. This is intended for workflows where you edit code in a
 checkout on disk.
 
-Pip-style VCS requirement URLs are not yet supported.
 
 Here are some common usage patterns for editable installations:
 
