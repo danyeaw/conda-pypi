@@ -2,6 +2,25 @@
 
 [//]: # (current developments)
 
+## 0.7.1 (2026-04-16)
+
+### Bug fixes
+
+* Fix hardcoded Python paths in entry point scripts from `conda pypi convert`. Entry-point scripts are now handled exclusively via `info/link.json` (CEP-34), so conda generates them at install time with the correct prefix. (#310)
+
+### Other
+
+* Refactor wheel installation to use PyPA `installer` destination APIs directly (no custom subclass) and require `installer>=1`. (#307)
+
+### Contributors
+
+* @agriyakhetarpal
+* @danyeaw
+* @jezdez
+* @pre-commit-ci[bot]
+
+
+
 ## 0.7.0 (2026-04-10)
 
 ### Enhancements
