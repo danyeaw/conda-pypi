@@ -6,7 +6,7 @@
 - name: Agriya Khetarpal
   email: 74401230+agriyakhetarpal@users.noreply.github.com
   github: agriyakhetarpal
-  num_commits: 2
+  num_commits: 3
   first_commit: 2026-02-25 08:29:54
 - name: Ken Odegard
   email: kodegard@anaconda.com
@@ -16,7 +16,7 @@
 - name: Dan Yeaw
   email: dan@yeaw.me
   github: danyeaw
-  num_commits: 32
+  num_commits: 34
   first_commit: 2025-08-18 12:34:03
 - name: Daniel Holth
   email: dholth@fastmail.fm
@@ -40,7 +40,7 @@
 - name: pre-commit-ci[bot]
   email: 66853113+pre-commit-ci[bot]@users.noreply.github.com
   github: pre-commit-ci[bot]
-  num_commits: 28
+  num_commits: 29
   first_commit: 2025-08-26 05:45:12
 - name: Sophia Castellarin
   email: scastellarin@quansight.com
@@ -83,5 +83,5 @@
 - name: Jannis Leidel
   email: jannis@leidel.info
   github: jezdez
-  num_commits: 9
+  num_commits: 10
   first_commit: 2025-09-26 17:08:21
