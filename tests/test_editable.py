@@ -2,15 +2,15 @@ import json
 import subprocess
 from pathlib import Path
 
+import build
 import pytest
 from conda.base.context import context
 from conda.cli.main import main_subshell
 from conda.core.prefix_data import PrefixData
 from packaging.requirements import InvalidRequirement
 
-import build
 import conda_pypi.dependencies_subprocess
-from conda_pypi.build import filter, pypa_to_conda
+from conda_pypi.build import pypa_to_conda
 from conda_pypi.dependencies.pypi import check_dependencies, ensure_requirements
 
 
@@ -92,13 +92,6 @@ def test_check_dependencies_flattens_missing_dependencies(mocker):
     missing = check_dependencies(["hatchling>=1.26", "setuptools>=65"], prefix=Path())
 
     assert missing == ["hatchling>=1.26", "packaging>=23"]
-
-
-def test_filter_coverage():
-    class tarinfo:
-        name = ".git"
-
-    assert filter(tarinfo) is None  # type: ignore
 
 
 def test_create_build_dir(tmp_path):

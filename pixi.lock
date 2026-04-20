@@ -14802,18 +14802,18 @@ packages:
   timestamp: 1751548225624
 - pypi: ./
   name: conda-pypi
-  version: 0.7.1.dev3+g4df75f2d7.d20260420
-  sha256: 137b01473ecacedf2724c23bf18d7a121e6dea8bfd79fd604f083509ca311e9e
+  version: 0.7.1.dev4+g1c2466068.d20260420
+  sha256: 5791102b1059854a4798462924609d6548797021325250b47d64e3316978d497
   requires_dist:
   - build
   - conda-index>=0.7.0
   - conda-package-handling>=2.2.0
-  - conda-package-streaming>=0.11
   - installer>=1.0
   - packaging
   - pip
   - platformdirs
   - unearth
+  - conda-package-streaming>=0.11 ; extra == 'test'
   requires_python: '>=3.10'
 - conda: https://conda.anaconda.org/conda-forge/noarch/conda-rattler-solver-0.0.6-pyhcf101f3_0.conda
   sha256: 07f361d11971a8305c64faedcd7546c1c0c67ebb95ff4b37ea2ce53472426151
