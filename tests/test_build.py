@@ -97,16 +97,23 @@ def test_build_conda_copies_licenses_to_info_licenses(
 
     assert out_conda.is_file()
 
-    info_names = {mm.name for _, mm in package_streaming.stream_conda_info(out_conda)}
-    assert "info/licenses/LICENSE" in info_names
+    # conda-package-handling puts paths not matched by filter_info_files (e.g.
+    # info/licenses/*) in the pkg-*.tar.zst member; stream_conda_info is the
+    # info-*.tar.zst member only (and stream_conda_component is pkg-only).
+    pkg_names = {mm.name for _, mm in package_streaming.stream_conda_component(out_conda)}
+    assert "info/licenses/LICENSE" in pkg_names
 
     about = None
-    lic_payload = None
     for tar, member in package_streaming.stream_conda_info(out_conda):
         if member.name == "info/about.json":
             about = json.load(tar.extractfile(member))
-        elif member.name == "info/licenses/LICENSE":
+            break
+
+    lic_payload = None
+    for tar, member in package_streaming.stream_conda_component(out_conda):
+        if member.name == "info/licenses/LICENSE":
             lic_payload = tar.extractfile(member).read()
+            break
     assert about is not None
     assert "license_file" not in about
     assert lic_payload == b"BSD-3-Clause placeholder license text\n"

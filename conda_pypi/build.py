@@ -18,7 +18,7 @@ from typing import Union
 from build import ProjectBuilder
 from conda.common.compat import on_win
 from conda.common.path.windows import win_path_to_unix
-from conda_package_streaming.create import conda_builder
+from conda_package_handling import api as conda_package_handling_api
 
 from conda_pypi import dependencies, installer, paths
 from conda_pypi.conda_build_utils import PathType, sha256_checksum
@@ -27,17 +27,6 @@ from conda_pypi.translate import CondaMetadata
 from conda_pypi.utils import sha256_as_base64url
 
 log = logging.getLogger(__name__)
-
-
-def filter(tarinfo):
-    """
-    Anonymize uid/gid and exclude .git directories.
-    """
-    if tarinfo.name.endswith(".git"):
-        return None
-    tarinfo.uid = tarinfo.gid = 0
-    tarinfo.uname = tarinfo.gname = ""
-    return tarinfo
 
 
 # see conda_build.build.build_info_files_json_v1
@@ -185,10 +174,13 @@ def build_conda(
 
     (build_path / "info" / "paths.json").write_text(json_dumps(paths))
 
-    with conda_builder(file_id, output_path) as tar:
-        tar.add(build_path, "", filter=filter)
-
-    return output_path / f"{file_id}.conda"
+    created = conda_package_handling_api.create(
+        str(build_path),
+        None,
+        f"{file_id}.conda",
+        out_folder=str(output_path),
+    )
+    return Path(created)
 
 
 def update_RECORD(record_path: Path, base_path: Path, changed_path: Path):

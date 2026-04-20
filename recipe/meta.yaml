@@ -37,6 +37,7 @@ requirements:
     - python-installer >=1.0
     - platformdirs
     - conda-index
+    - conda-package-handling
     - conda-package-streaming
     - conda-rattler-solver
 

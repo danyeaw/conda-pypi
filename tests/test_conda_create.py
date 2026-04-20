@@ -5,9 +5,9 @@ from pathlib import Path
 
 from conda.cli.main import main_subshell
 from conda.exceptions import DryRunExit
-from conda_package_streaming.create import conda_builder
+from conda_package_handling import api as conda_package_handling_api
 
-from conda_pypi.build import filter, paths_json
+from conda_pypi.build import paths_json
 from conda_pypi.conda_build_utils import PathType, sha256_checksum
 from conda_pypi.index import update_index
 from conda_pypi.translate import PackageRecord
@@ -36,8 +36,12 @@ def test_indexable(tmp_path):
     paths = paths_json(dest)
     (dest / "info" / "paths.json").write_text(json.dumps(paths))
 
-    with conda_builder(record.stem, noarch) as tar:
-        tar.add(dest, "", filter=filter)
+    conda_package_handling_api.create(
+        str(dest),
+        None,
+        f"{record.stem}.conda",
+        out_folder=str(noarch),
+    )
 
     update_index(tmp_path)
 
