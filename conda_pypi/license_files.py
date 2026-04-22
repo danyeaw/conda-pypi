@@ -9,27 +9,12 @@ from __future__ import annotations
 
 import logging
 import shutil
-from importlib.metadata import Distribution, PackageMetadata
+from importlib.metadata import PackageMetadata
 from pathlib import Path
 
+from conda_pypi.translate import FileDistribution
+
 log = logging.getLogger(__name__)
-
-
-class _MetadataBodyDistribution(Distribution):
-    """Minimal :class:`~importlib.metadata.Distribution` backed by METADATA text only (no disk)."""
-
-    __slots__ = ("_text",)
-
-    def __init__(self, text: str) -> None:
-        self._text = text
-
-    def read_text(self, filename: str) -> str | None:
-        if filename == "METADATA":
-            return self._text
-        return None
-
-    def locate_file(self, path):  # noqa: ARG002
-        return None
 
 
 def package_metadata_from_metadata_body(body: str) -> PackageMetadata:
@@ -37,7 +22,7 @@ def package_metadata_from_metadata_body(body: str) -> PackageMetadata:
     Parse core metadata from the body of a ``METADATA`` file without reading
     from the filesystem (e.g. ``WheelFile.read_dist_info('METADATA')``).
     """
-    return _MetadataBodyDistribution(body).metadata
+    return FileDistribution(body).metadata
 
 
 def _license_file_lookup_paths(dist_info_resolved: Path, listed_path: Path) -> list[Path]:
