@@ -34,6 +34,7 @@ dependencies = [
   "packaging",
   "pip",
   "platformdirs",
+  "ruamel.yaml",
   "unearth",
 ]
 dynamic = ["version"]
@@ -56,6 +57,7 @@ conda-index = ">=0.11.0"
 conda-package-streaming = ">=0.11"
 packaging = "*"
 pip = "*"
+"ruamel.yaml" = "*"
 unearth = "*"
 
 [tool.pixi.pypi-dependencies]
