@@ -14,10 +14,6 @@ from conda_pypi.migrate_env import (
     migrate_environment,
 )
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
 _YAML = YAML()
 _YAML.default_flow_style = False
 
@@ -42,11 +38,6 @@ def _mock_solve_missing(*conda_names: str):
     return patch(
         "conda_pypi.migrate_env._dry_run_solve", return_value={n.lower() for n in conda_names}
     )
-
-
-# ---------------------------------------------------------------------------
-# Unit tests — core logic
-# ---------------------------------------------------------------------------
 
 
 def test_migrate_promotes_all_when_solve_succeeds():
@@ -320,11 +311,6 @@ def test_migrate_unsatisfiable_demotes_to_pip():
     assert "conflicting-pkg" in pip_blocks[0]["pip"]
 
 
-# ---------------------------------------------------------------------------
-# _dry_run_solve unit tests (mock main_subshell directly)
-# ---------------------------------------------------------------------------
-
-
 def test_dry_run_solve_returns_empty_on_dry_run_exit():
     """_dry_run_solve returns empty set when main_subshell raises DryRunExit."""
     from conda_pypi.migrate_env import _dry_run_solve
@@ -351,11 +337,6 @@ def test_dry_run_solve_returns_empty_on_unexpected_error():
     with patch("conda_pypi.migrate_env.main_subshell", side_effect=RuntimeError("boom")):
         result = _dry_run_solve(["python"], ["conda-forge"])
     assert result == set()
-
-
-# ---------------------------------------------------------------------------
-# CLI integration tests
-# ---------------------------------------------------------------------------
 
 
 def test_cli_migrate_env_stdout(tmp_path, capsys):
