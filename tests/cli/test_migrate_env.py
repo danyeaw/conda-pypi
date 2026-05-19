@@ -2,11 +2,11 @@
 
 from pathlib import Path
 from textwrap import dedent
-from unittest.mock import patch
 
 import pytest
 from conda.cli.main import main_subshell
 from conda.exceptions import DryRunExit, PackagesNotFoundError
+from pytest_mock import MockerFixture
 from ruamel.yaml import YAML
 
 from conda_pypi.migrate_env import (
@@ -28,20 +28,22 @@ def _write_env(tmp_path: Path, content: str) -> Path:
     return path
 
 
-def _mock_solve_success():
+def _mock_solve_success(mocker: MockerFixture) -> None:
     """Patch _dry_run_solve to return an empty set (all packages resolved)."""
-    return patch("conda_pypi.migrate_env._dry_run_solve", return_value=set())
+    mocker.patch("conda_pypi.migrate_env._dry_run_solve", return_value=set())
 
 
-def _mock_solve_missing(*conda_names: str):
+def _mock_solve_missing(mocker: MockerFixture, *conda_names: str) -> None:
     """Patch _dry_run_solve to report *conda_names* as unresolvable."""
-    return patch(
-        "conda_pypi.migrate_env._dry_run_solve", return_value={n.lower() for n in conda_names}
+    mocker.patch(
+        "conda_pypi.migrate_env._dry_run_solve",
+        return_value={n.lower() for n in conda_names},
     )
 
 
-def test_migrate_promotes_all_when_solve_succeeds():
+def test_migrate_promotes_all_when_solve_succeeds(mocker):
     """When the solver succeeds, all pip packages move to conda deps."""
+    _mock_solve_success(mocker)
     env = _load(
         """
         name: myenv
@@ -54,19 +56,19 @@ def test_migrate_promotes_all_when_solve_succeeds():
             - flask
         """
     )
-    with _mock_solve_success():
-        result, warnings = migrate_environment(env, ["https://example.com/wheels"])
+    result, warnings = migrate_environment(env, ["https://example.com/wheels"])
 
     deps = result["dependencies"]
     assert "requests>=2.28.0" in deps
     assert "flask" in deps
     pip_blocks = [d for d in deps if isinstance(d, dict) and "pip" in d]
-    assert not pip_blocks, "pip block should be removed when all packages are promoted"
+    assert not pip_blocks
     assert not warnings
 
 
-def test_migrate_removes_bare_pip_dep_when_pip_block_cleared():
+def test_migrate_removes_bare_pip_dep_when_pip_block_cleared(mocker):
     """Bare 'pip' conda dep is removed when the pip: block is fully promoted."""
+    _mock_solve_success(mocker)
     env = _load(
         """
         name: myenv
@@ -77,16 +79,17 @@ def test_migrate_removes_bare_pip_dep_when_pip_block_cleared():
             - requests
         """
     )
-    with _mock_solve_success():
-        result, _ = migrate_environment(env, ["https://example.com/wheels"])
+    result, _ = migrate_environment(env, ["https://example.com/wheels"])
 
     deps = result["dependencies"]
     assert "requests" in deps
-    assert "pip" not in deps, "bare 'pip' dep should be removed when pip block is gone"
+    # bare pip dep should be removed when pip block is gone
+    assert "pip" not in deps
 
 
-def test_migrate_keeps_versioned_pip_dep():
+def test_migrate_keeps_versioned_pip_dep(mocker):
     """Version-constrained 'pip>=X' entry is preserved even when pip block is cleared."""
+    _mock_solve_success(mocker)
     env = _load(
         """
         name: myenv
@@ -96,15 +99,14 @@ def test_migrate_keeps_versioned_pip_dep():
             - requests
         """
     )
-    with _mock_solve_success():
-        result, _ = migrate_environment(env, ["https://example.com/wheels"])
+    result, _ = migrate_environment(env, ["https://example.com/wheels"])
 
-    deps = result["dependencies"]
-    assert "pip>=23" in deps
+    assert "pip>=23" in result["dependencies"]
 
 
-def test_migrate_keeps_pip_dep_when_pip_block_remains():
+def test_migrate_keeps_pip_dep_when_pip_block_remains(mocker):
     """Bare 'pip' conda dep is kept when some packages still need the pip block."""
+    _mock_solve_missing(mocker, "some-private-pkg")
     env = _load(
         """
         name: myenv
@@ -115,15 +117,15 @@ def test_migrate_keeps_pip_dep_when_pip_block_remains():
             - some-private-pkg
         """
     )
-    with _mock_solve_missing("some-private-pkg"):
-        result, _ = migrate_environment(env, ["https://example.com/wheels"])
+    result, _ = migrate_environment(env, ["https://example.com/wheels"])
 
-    deps = result["dependencies"]
-    assert "pip" in deps, "pip dep should stay when pip block still has entries"
+    # pip dep should stay when pip block still has entries
+    assert "pip" in result["dependencies"]
 
 
-def test_migrate_demotes_missing_packages():
+def test_migrate_demotes_missing_packages(mocker):
     """Packages the solver cannot find are put back in the pip block with a warning."""
+    _mock_solve_missing(mocker, "some-private-pkg")
     env = _load(
         """
         name: myenv
@@ -136,20 +138,20 @@ def test_migrate_demotes_missing_packages():
             - some-private-pkg
         """
     )
-    with _mock_solve_missing("some-private-pkg"):
-        result, warnings = migrate_environment(env, ["https://example.com/wheels"])
+    result, warnings = migrate_environment(env, ["https://example.com/wheels"])
 
     deps = result["dependencies"]
     assert "requests" in deps
     pip_blocks = [d for d in deps if isinstance(d, dict) and "pip" in d]
-    assert pip_blocks, "pip block should remain for packages solver couldn't find"
+    assert pip_blocks
     assert "some-private-pkg" in pip_blocks[0]["pip"]
     assert len(warnings) == 1
     assert "some-private-pkg" in warnings[0]
 
 
-def test_migrate_adds_channel_when_packages_promoted():
+def test_migrate_adds_channel_when_packages_promoted(mocker):
     """The wheels channel URL is appended to channels: when promotions occurred."""
+    _mock_solve_success(mocker)
     channel_url = "https://example.com/wheels"
     env = _load(
         """
@@ -161,14 +163,14 @@ def test_migrate_adds_channel_when_packages_promoted():
             - requests
         """
     )
-    with _mock_solve_success():
-        result, _ = migrate_environment(env, [channel_url])
+    result, _ = migrate_environment(env, [channel_url])
 
     assert channel_url in result["channels"]
 
 
-def test_migrate_does_not_add_channel_when_nothing_promoted():
+def test_migrate_does_not_add_channel_when_nothing_promoted(mocker):
     """Channel is not added when no packages were promoted."""
+    _mock_solve_missing(mocker, "some-private-pkg")
     channel_url = "https://example.com/wheels"
     env = _load(
         """
@@ -180,14 +182,14 @@ def test_migrate_does_not_add_channel_when_nothing_promoted():
             - some-private-pkg
         """
     )
-    with _mock_solve_missing("some-private-pkg"):
-        result, _ = migrate_environment(env, [channel_url])
+    result, _ = migrate_environment(env, [channel_url])
 
     assert channel_url not in result.get("channels", [])
 
 
-def test_migrate_does_not_duplicate_channel():
+def test_migrate_does_not_duplicate_channel(mocker):
     """Channel is not added twice when already present in channels:."""
+    _mock_solve_success(mocker)
     channel_url = "https://example.com/wheels"
     env = _load(
         f"""
@@ -200,14 +202,14 @@ def test_migrate_does_not_duplicate_channel():
             - requests
         """
     )
-    with _mock_solve_success():
-        result, _ = migrate_environment(env, [channel_url])
+    result, _ = migrate_environment(env, [channel_url])
 
     assert result["channels"].count(channel_url) == 1
 
 
-def test_migrate_no_pip_section():
+def test_migrate_no_pip_section(mocker):
     """Environment file without a pip block returns unchanged with no warnings."""
+    _mock_solve_success(mocker)
     env = _load(
         """
         name: myenv
@@ -218,15 +220,15 @@ def test_migrate_no_pip_section():
           - pandas
         """
     )
-    with _mock_solve_success():
-        result, warnings = migrate_environment(env, ["https://example.com/wheels"])
+    result, warnings = migrate_environment(env, ["https://example.com/wheels"])
 
     assert result["dependencies"] == ["numpy", "pandas"]
     assert not warnings
 
 
-def test_migrate_preserves_version_specifier():
+def test_migrate_preserves_version_specifier(mocker):
     """Version specifiers from pip deps are preserved in the promoted conda dep."""
+    _mock_solve_success(mocker)
     env = _load(
         """
         name: myenv
@@ -235,19 +237,18 @@ def test_migrate_preserves_version_specifier():
             - "flask>=2.0,<3"
         """
     )
-    with _mock_solve_success():
-        result, _ = migrate_environment(env, ["https://example.com/wheels"])
+    result, _ = migrate_environment(env, ["https://example.com/wheels"])
 
-    # packaging may reorder specifiers (e.g. ">=2.0,<3" → "<3,>=2.0"); check
-    # that the promoted dep starts with "flask" and contains both constraints.
+    # packaging may reorder specifiers (e.g. ">=2.0,<3" → "<3,>=2.0")
     flask_deps = [d for d in result["dependencies"] if str(d).startswith("flask")]
-    assert flask_deps, "flask should be in conda deps"
+    assert flask_deps
     assert ">=2.0" in flask_deps[0]
     assert "<3" in flask_deps[0]
 
 
-def test_migrate_pip_only_editable_kept_silently():
+def test_migrate_pip_only_editable_kept_silently(mocker):
     """Editable installs (-e .) are recognised as pip-only and kept without a warning."""
+    _mock_solve_success(mocker)
     env = _load(
         """
         name: myenv
@@ -257,18 +258,17 @@ def test_migrate_pip_only_editable_kept_silently():
             - -e .
         """
     )
-    with _mock_solve_success():
-        result, warnings = migrate_environment(env, ["https://example.com/wheels"])
+    result, warnings = migrate_environment(env, ["https://example.com/wheels"])
 
     pip_blocks = [d for d in result["dependencies"] if isinstance(d, dict) and "pip" in d]
-    assert pip_blocks, "pip block should remain for editable install"
+    assert pip_blocks
     assert "-e ." in pip_blocks[0]["pip"]
-    # No warning — we understand this is pip-only, it is not unexpected.
     assert not warnings
 
 
-def test_migrate_pip_only_local_path_kept_silently():
+def test_migrate_pip_only_local_path_kept_silently(mocker):
     """Local path deps (./pkg.whl, git+...) are kept in pip without a warning."""
+    _mock_solve_success(mocker)
     env = _load(
         """
         name: myenv
@@ -279,8 +279,7 @@ def test_migrate_pip_only_local_path_kept_silently():
             - git+https://github.com/example/repo.git
         """
     )
-    with _mock_solve_success():
-        result, warnings = migrate_environment(env, ["https://example.com/wheels"])
+    result, warnings = migrate_environment(env, ["https://example.com/wheels"])
 
     pip_blocks = [d for d in result["dependencies"] if isinstance(d, dict) and "pip" in d]
     assert pip_blocks
@@ -290,8 +289,9 @@ def test_migrate_pip_only_local_path_kept_silently():
     assert not warnings
 
 
-def test_migrate_unsatisfiable_demotes_to_pip():
-    """Packages reported via UnsatisfiableError are demoted back to pip."""
+def test_migrate_unsatisfiable_demotes_to_pip(mocker):
+    """Packages reported as unresolvable are demoted back to pip."""
+    _mock_solve_missing(mocker, "conflicting-pkg")
     env = _load(
         """
         name: myenv
@@ -301,8 +301,7 @@ def test_migrate_unsatisfiable_demotes_to_pip():
             - conflicting-pkg
         """
     )
-    with _mock_solve_missing("conflicting-pkg"):
-        result, warnings = migrate_environment(env, ["https://example.com/wheels"])
+    result, warnings = migrate_environment(env, ["https://example.com/wheels"])
 
     deps = result["dependencies"]
     assert "requests" in deps
@@ -311,36 +310,36 @@ def test_migrate_unsatisfiable_demotes_to_pip():
     assert "conflicting-pkg" in pip_blocks[0]["pip"]
 
 
-def test_dry_run_solve_returns_empty_on_dry_run_exit():
+def test_dry_run_solve_returns_empty_on_dry_run_exit(mocker):
     """_dry_run_solve returns empty set when main_subshell raises DryRunExit."""
     from conda_pypi.migrate_env import _dry_run_solve
 
-    with patch("conda_pypi.migrate_env.main_subshell", side_effect=DryRunExit()):
-        result = _dry_run_solve(["python"], ["conda-forge"])
-    assert result == set()
+    mocker.patch("conda_pypi.migrate_env.main_subshell", side_effect=DryRunExit())
+    assert _dry_run_solve(["python"], ["conda-forge"]) == set()
 
 
-def test_dry_run_solve_returns_missing_on_packages_not_found():
+def test_dry_run_solve_returns_missing_on_packages_not_found(mocker):
     """_dry_run_solve extracts missing names from PackagesNotFoundError."""
     from conda_pypi.migrate_env import _dry_run_solve
 
-    exc = PackagesNotFoundError(["some-private-pkg"])
-    with patch("conda_pypi.migrate_env.main_subshell", side_effect=exc):
-        result = _dry_run_solve(["python"], ["conda-forge"])
-    assert "some-private-pkg" in result
+    mocker.patch(
+        "conda_pypi.migrate_env.main_subshell",
+        side_effect=PackagesNotFoundError(["some-private-pkg"]),
+    )
+    assert "some-private-pkg" in _dry_run_solve(["python"], ["conda-forge"])
 
 
-def test_dry_run_solve_returns_empty_on_unexpected_error():
+def test_dry_run_solve_returns_empty_on_unexpected_error(mocker):
     """_dry_run_solve returns empty set (and warns) on unexpected exceptions."""
     from conda_pypi.migrate_env import _dry_run_solve
 
-    with patch("conda_pypi.migrate_env.main_subshell", side_effect=RuntimeError("boom")):
-        result = _dry_run_solve(["python"], ["conda-forge"])
-    assert result == set()
+    mocker.patch("conda_pypi.migrate_env.main_subshell", side_effect=RuntimeError("boom"))
+    assert _dry_run_solve(["python"], ["conda-forge"]) == set()
 
 
-def test_cli_migrate_env_stdout(tmp_path, capsys):
+def test_cli_migrate_env_stdout(tmp_path, mocker, capsys):
     """migrate-env writes YAML to stdout by default."""
+    _mock_solve_success(mocker)
     env_file = _write_env(
         tmp_path,
         """
@@ -353,16 +352,16 @@ def test_cli_migrate_env_stdout(tmp_path, capsys):
             - requests
         """,
     )
-    with _mock_solve_success():
-        main_subshell("pypi", "migrate-env", str(env_file))
+    main_subshell("pypi", "migrate-env", str(env_file))
 
     out = capsys.readouterr().out
     assert "requests" in out
     assert "pip:" not in out
 
 
-def test_cli_migrate_env_output_to_file(tmp_path):
+def test_cli_migrate_env_output_to_file(tmp_path, mocker):
     """--file writes the rewritten file to the given path."""
+    _mock_solve_success(mocker)
     env_file = _write_env(
         tmp_path,
         """
@@ -373,16 +372,15 @@ def test_cli_migrate_env_output_to_file(tmp_path):
         """,
     )
     out_file = tmp_path / "out.yaml"
-    with _mock_solve_success():
-        main_subshell("pypi", "migrate-env", "--file", str(out_file), str(env_file))
+    main_subshell("pypi", "migrate-env", "--file", str(out_file), str(env_file))
 
     assert out_file.exists()
-    content = out_file.read_text()
-    assert "requests" in content
+    assert "requests" in out_file.read_text()
 
 
-def test_cli_migrate_env_in_place(tmp_path):
+def test_cli_migrate_env_in_place(tmp_path, mocker):
     """--in-place overwrites the input file."""
+    _mock_solve_success(mocker)
     env_file = _write_env(
         tmp_path,
         """
@@ -392,8 +390,7 @@ def test_cli_migrate_env_in_place(tmp_path):
             - requests
         """,
     )
-    with _mock_solve_success():
-        main_subshell("pypi", "migrate-env", "--in-place", str(env_file))
+    main_subshell("pypi", "migrate-env", "--in-place", str(env_file))
 
     content = env_file.read_text()
     assert "requests" in content
@@ -408,8 +405,16 @@ def test_cli_migrate_env_missing_file(tmp_path):
         main_subshell("pypi", "migrate-env", str(tmp_path / "nonexistent.yaml"))
 
 
-def test_cli_migrate_env_custom_channel(tmp_path):
+def test_cli_migrate_env_custom_channel(tmp_path, mocker):
     """--channel is passed through to the solver; DEFAULT_WHEELS_CHANNEL is not used."""
+    custom_channel = "https://custom.example.com/wheels"
+    captured_calls: list[tuple[list[str], list[str]]] = []
+
+    def _capture(specs: list[str], channels: list[str]) -> set[str]:
+        captured_calls.append((specs, channels))
+        return set()
+
+    mocker.patch("conda_pypi.migrate_env._dry_run_solve", side_effect=_capture)
     env_file = _write_env(
         tmp_path,
         """
@@ -419,17 +424,9 @@ def test_cli_migrate_env_custom_channel(tmp_path):
             - requests
         """,
     )
-    custom_channel = "https://custom.example.com/wheels"
-    captured_calls: list[tuple[list[str], list[str]]] = []
+    main_subshell("pypi", "migrate-env", "-c", custom_channel, str(env_file))
 
-    def _capture_dry_run(specs: list[str], channels: list[str]) -> set[str]:
-        captured_calls.append((specs, channels))
-        return set()
-
-    with patch("conda_pypi.migrate_env._dry_run_solve", side_effect=_capture_dry_run):
-        main_subshell("pypi", "migrate-env", "-c", custom_channel, str(env_file))
-
-    assert captured_calls, "solver should have been called"
+    assert captured_calls
     _, channels_used = captured_calls[0]
     assert custom_channel in channels_used
     assert DEFAULT_WHEELS_CHANNEL not in channels_used
