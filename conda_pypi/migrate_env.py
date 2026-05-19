@@ -90,9 +90,8 @@ def migrate_environment(
     if pip_block_idx is None or not pip_list:
         return env_data, warnings
 
-    # Build a list of (original_pip_dep, conda_name, conda_dep_string) triples.
+    # Build a list of (original_pip_dep, conda_name_lower, conda_dep_string) triples.
     # Unparseable entries go straight to remaining_pip.
-    # _Entry is (original_pip, conda_name_lower, conda_dep_string)
     translatable: list[tuple[str, str, str]] = []
     remaining_pip: list[str] = []
 
@@ -144,13 +143,9 @@ def migrate_environment(
 
     # Apply changes to the original env_data.
     if promoted_conda_deps:
-        # Insert promoted packages before the pip block position.
-        insert_at = pip_block_idx
-        for dep in promoted_conda_deps:
-            deps.insert(insert_at, dep)
-            insert_at += 1
-        # The pip block has shifted down by len(promoted_conda_deps).
-        pip_block_idx = insert_at
+        for offset, dep in enumerate(promoted_conda_deps):
+            deps.insert(pip_block_idx + offset, dep)
+        pip_block_idx += len(promoted_conda_deps)
 
     if all_pip:
         deps[pip_block_idx]["pip"] = all_pip
@@ -195,13 +190,16 @@ def _dry_run_solve(specs: list[str], channels: list[str]) -> set[str]:
     except DryRunExit:
         return set()
     except PackagesNotFoundError as exc:
-        pkgs: list[str] = exc._kwargs.get("packages", [])
+        pkgs = exc._kwargs.get("packages", [])
         return {str(p).split("[")[0].split(" ")[0].lower() for p in pkgs}
     except UnsatisfiableError as exc:
-        missing: set[str] = set()
-        missing.update(parse_libmamba_solver_error(exc.message))
-        missing.update(parse_rattler_solver_error(exc.message))
-        return {p.lower() for p in missing}
+        return {
+            p.lower()
+            for p in [
+                *parse_libmamba_solver_error(exc.message),
+                *parse_rattler_solver_error(exc.message),
+            ]
+        }
     except Exception as exc:
         logger.warning("Unexpected solver error during dry-run: %s", exc)
         return set()
