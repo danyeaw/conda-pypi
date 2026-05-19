@@ -59,6 +59,8 @@ packaging = "*"
 pip = "*"
 "ruamel.yaml" = "*"
 unearth = "*"
+# We want to be able to test the plugin with the rattler solver
+conda-rattler-solver = "*"
 
 [tool.pixi.pypi-dependencies]
 "conda-pypi" = { path  = ".", editable = true }

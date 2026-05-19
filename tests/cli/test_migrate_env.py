@@ -74,6 +74,63 @@ def test_migrate_promotes_all_when_solve_succeeds():
     assert not warnings
 
 
+def test_migrate_removes_bare_pip_dep_when_pip_block_cleared():
+    """Bare 'pip' conda dep is removed when the pip: block is fully promoted."""
+    env = _load(
+        """
+        name: myenv
+        dependencies:
+          - python=3.12
+          - pip
+          - pip:
+            - requests
+        """
+    )
+    with _mock_solve_success():
+        result, _ = migrate_environment(env, ["https://example.com/wheels"])
+
+    deps = result["dependencies"]
+    assert "requests" in deps
+    assert "pip" not in deps, "bare 'pip' dep should be removed when pip block is gone"
+
+
+def test_migrate_keeps_versioned_pip_dep():
+    """Version-constrained 'pip>=X' entry is preserved even when pip block is cleared."""
+    env = _load(
+        """
+        name: myenv
+        dependencies:
+          - pip>=23
+          - pip:
+            - requests
+        """
+    )
+    with _mock_solve_success():
+        result, _ = migrate_environment(env, ["https://example.com/wheels"])
+
+    deps = result["dependencies"]
+    assert "pip>=23" in deps
+
+
+def test_migrate_keeps_pip_dep_when_pip_block_remains():
+    """Bare 'pip' conda dep is kept when some packages still need the pip block."""
+    env = _load(
+        """
+        name: myenv
+        dependencies:
+          - pip
+          - pip:
+            - requests
+            - some-private-pkg
+        """
+    )
+    with _mock_solve_missing("some-private-pkg"):
+        result, _ = migrate_environment(env, ["https://example.com/wheels"])
+
+    deps = result["dependencies"]
+    assert "pip" in deps, "pip dep should stay when pip block still has entries"
+
+
 def test_migrate_demotes_missing_packages():
     """Packages the solver cannot find are put back in the pip block with a warning."""
     env = _load(
@@ -324,7 +381,7 @@ def test_cli_migrate_env_stdout(tmp_path, capsys):
 
 
 def test_cli_migrate_env_output_to_file(tmp_path):
-    """--output writes the rewritten file to the given path."""
+    """--file writes the rewritten file to the given path."""
     env_file = _write_env(
         tmp_path,
         """
@@ -336,7 +393,7 @@ def test_cli_migrate_env_output_to_file(tmp_path):
     )
     out_file = tmp_path / "out.yaml"
     with _mock_solve_success():
-        main_subshell("pypi", "migrate-env", "--output", str(out_file), str(env_file))
+        main_subshell("pypi", "migrate-env", "--file", str(out_file), str(env_file))
 
     assert out_file.exists()
     content = out_file.read_text()

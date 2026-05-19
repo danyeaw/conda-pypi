@@ -15,6 +15,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from conda.base.context import context, fresh_context
 from conda.cli.main import main_subshell
 from conda.exceptions import DryRunExit, PackagesNotFoundError, UnsatisfiableError
 from packaging.requirements import InvalidRequirement, Requirement
@@ -168,6 +169,10 @@ def migrate_environment(
         deps[pip_block_idx]["pip"] = all_pip
     else:
         del deps[pip_block_idx]
+        # Remove the bare "pip" conda dep — it was only needed to support the
+        # pip: block.  Leave version-constrained entries (e.g. "pip>=23") alone
+        # since those signal an intentional version requirement.
+        deps[:] = [d for d in deps if not (isinstance(d, str) and d.strip().lower() == "pip")]
 
     # Add channels to the real env_data only when something was actually promoted.
     if promoted_conda_deps:
@@ -214,7 +219,8 @@ def _dry_run_solve(env_data: dict) -> set[str]:
     ]
 
     try:
-        main_subshell(*cmd)
+        with fresh_context(solver=context.solver):
+            main_subshell(*cmd)
     except DryRunExit:
         # Success — the solve produced a valid plan.
         return set()

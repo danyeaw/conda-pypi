@@ -35,7 +35,7 @@ def configure_parser(parser: _SubParsersAction) -> None:
 
         Write the result to a new file instead of stdout::
 
-            conda pypi migrate-env -o migrated.yaml environment.yaml
+            conda pypi migrate-env --file migrated.yaml environment.yaml
 
         Rewrite the file in-place::
 
@@ -71,13 +71,13 @@ def configure_parser(parser: _SubParsersAction) -> None:
     )
     output_group = migrate.add_mutually_exclusive_group()
     output_group.add_argument(
-        "-o",
-        "--output",
-        dest="output",
+        "-f",
+        "--file",
+        dest="file",
         type=Path,
         default=None,
-        metavar="OUTPUT",
-        help="Write the rewritten environment file to OUTPUT instead of stdout.",
+        metavar="FILE",
+        help="Write the rewritten environment file to FILE instead of stdout.",
     )
     output_group.add_argument(
         "--in-place",
@@ -122,7 +122,7 @@ def execute(args: Namespace) -> int:
     if args.in_place:
         output_path = env_path
     else:
-        output_path = args.output  # None → stdout
+        output_path = args.file  # None → stdout
 
     dump_env(env_data, output_path)
     return 0
