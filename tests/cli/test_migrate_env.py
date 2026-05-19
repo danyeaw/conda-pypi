@@ -5,12 +5,13 @@ from textwrap import dedent
 
 import pytest
 from conda.cli.main import main_subshell
-from conda.exceptions import DryRunExit, PackagesNotFoundError
+from conda.exceptions import ArgumentError, DryRunExit, PackagesNotFoundError
 from pytest_mock import MockerFixture
 from ruamel.yaml import YAML
 
 from conda_pypi.migrate_env import (
     DEFAULT_WHEELS_CHANNEL,
+    _dry_run_solve,
     migrate_environment,
 )
 
@@ -301,7 +302,7 @@ def test_migrate_unsatisfiable_demotes_to_pip(mocker):
             - conflicting-pkg
         """
     )
-    result, warnings = migrate_environment(env, ["https://example.com/wheels"])
+    result, _ = migrate_environment(env, ["https://example.com/wheels"])
 
     deps = result["dependencies"]
     assert "requests" in deps
@@ -312,16 +313,12 @@ def test_migrate_unsatisfiable_demotes_to_pip(mocker):
 
 def test_dry_run_solve_returns_empty_on_dry_run_exit(mocker):
     """_dry_run_solve returns empty set when main_subshell raises DryRunExit."""
-    from conda_pypi.migrate_env import _dry_run_solve
-
     mocker.patch("conda_pypi.migrate_env.main_subshell", side_effect=DryRunExit())
     assert _dry_run_solve(["python"], ["conda-forge"]) == set()
 
 
 def test_dry_run_solve_returns_missing_on_packages_not_found(mocker):
     """_dry_run_solve extracts missing names from PackagesNotFoundError."""
-    from conda_pypi.migrate_env import _dry_run_solve
-
     mocker.patch(
         "conda_pypi.migrate_env.main_subshell",
         side_effect=PackagesNotFoundError(["some-private-pkg"]),
@@ -331,8 +328,6 @@ def test_dry_run_solve_returns_missing_on_packages_not_found(mocker):
 
 def test_dry_run_solve_returns_empty_on_unexpected_error(mocker):
     """_dry_run_solve returns empty set (and warns) on unexpected exceptions."""
-    from conda_pypi.migrate_env import _dry_run_solve
-
     mocker.patch("conda_pypi.migrate_env.main_subshell", side_effect=RuntimeError("boom"))
     assert _dry_run_solve(["python"], ["conda-forge"]) == set()
 
@@ -399,8 +394,6 @@ def test_cli_migrate_env_in_place(tmp_path, mocker):
 
 def test_cli_migrate_env_missing_file(tmp_path):
     """migrate-env raises an error when ENV_FILE does not exist."""
-    from conda.exceptions import ArgumentError
-
     with pytest.raises((ArgumentError, SystemExit)):
         main_subshell("pypi", "migrate-env", str(tmp_path / "nonexistent.yaml"))
 
