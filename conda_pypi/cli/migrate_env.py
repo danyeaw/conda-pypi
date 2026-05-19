@@ -1,4 +1,3 @@
-import json
 import sys
 from argparse import Namespace, _SubParsersAction
 from pathlib import Path
@@ -12,7 +11,7 @@ from conda_pypi.migrate_env import (
     load_env_file,
     migrate_environment,
 )
-from conda_pypi.translate import validate_name_mapping_format
+from conda_pypi.translate import load_name_mapping
 
 
 def configure_parser(parser: _SubParsersAction) -> None:
@@ -103,14 +102,7 @@ def execute(args: Namespace) -> int:
 
     channel_urls: list[str] = args.channels or [DEFAULT_WHEELS_CHANNEL]
 
-    name_mapping: dict | None = None
-    if args.name_mapping is not None:
-        mapping_path = Path(args.name_mapping).expanduser()
-        if not mapping_path.exists():
-            raise ArgumentError(f"Could not open name mapping file: {mapping_path}")
-        with open(mapping_path) as fh:
-            name_mapping = json.load(fh)
-        validate_name_mapping_format(name_mapping)
+    name_mapping = load_name_mapping(args.name_mapping)
 
     env_data = load_env_file(env_path)
     env_data, warnings = migrate_environment(env_data, channel_urls, name_mapping)
