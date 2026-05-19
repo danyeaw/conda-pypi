@@ -9,7 +9,6 @@ and only the packages the solver could not find are put back in the pip block.
 
 from __future__ import annotations
 
-import copy
 import logging
 import sys
 from pathlib import Path
@@ -116,28 +115,16 @@ def migrate_environment(
     if not translatable:
         return env_data, warnings
 
-    # Build a trial env dict with all translatable packages promoted.
-    trial_env = copy.deepcopy(dict(env_data))
-    trial_deps: list = trial_env.setdefault("dependencies", [])
-
-    # Add wheels channels to the trial env.
-    trial_channels: list = trial_env.setdefault("channels", [])
+    # Build the trial channel list and spec list for the solver.
+    trial_channels: list[str] = list(env_data.get("channels") or [])
     for url in channel_urls:
         if url not in trial_channels:
             trial_channels.append(url)
 
-    # Remove the pip block and append all promoted conda deps.
-    trial_pip_idx = next(
-        (i for i, d in enumerate(trial_deps) if isinstance(d, dict) and "pip" in d),
-        None,
-    )
-    if trial_pip_idx is not None:
-        del trial_deps[trial_pip_idx]
-    for _, _, conda_dep in translatable:
-        trial_deps.append(conda_dep)
+    trial_specs = _specs_from_env(env_data) + [conda_dep for _, _, conda_dep in translatable]
 
     # Run the conda solver dry-run; collect missing package names (lowercase).
-    missing_conda_names: set[str] = _dry_run_solve(trial_env)
+    missing_conda_names: set[str] = _dry_run_solve(trial_specs, trial_channels)
 
     # Partition translatable entries into promoted vs demoted.
     promoted_conda_deps: list[str] = []
@@ -186,16 +173,11 @@ def migrate_environment(
 
 def _specs_from_env(env_data: dict) -> list[str]:
     """Extract flat conda dep strings from *env_data*, skipping the pip sub-dict."""
-    specs: list[str] = []
-    for dep in env_data.get("dependencies") or []:
-        if isinstance(dep, dict):
-            continue  # skip pip: block
-        specs.append(str(dep))
-    return specs
+    return [str(dep) for dep in (env_data.get("dependencies") or []) if not isinstance(dep, dict)]
 
 
-def _dry_run_solve(env_data: dict) -> set[str]:
-    """Run ``conda create --dry-run`` with the deps and channels from *env_data*.
+def _dry_run_solve(specs: list[str], channels: list[str]) -> set[str]:
+    """Run ``conda create --dry-run`` with *specs* and *channels*.
 
     Uses ``conda create`` (not ``conda env create``) so that all configured
     solver backends — including rattler, which is required for v3.whl repodata
@@ -204,25 +186,13 @@ def _dry_run_solve(env_data: dict) -> set[str]:
     Returns the set of lowercase conda package names that the solver could
     not find.  Returns an empty set when the solve succeeds.
     """
-    specs = _specs_from_env(env_data)
-    channel_args: list[str] = []
-    for ch in env_data.get("channels") or []:
-        channel_args += ["--channel", str(ch)]
-
-    cmd = [
-        "create",
-        "--dry-run",
-        "--name",
-        "_conda_pypi_migrate_dryrun_",
-        *channel_args,
-        *specs,
-    ]
+    channel_args = [arg for ch in channels for arg in ("--channel", str(ch))]
+    cmd = ["create", "--dry-run", "--name", "_conda_pypi_migrate_dryrun_", *channel_args, *specs]
 
     try:
         with fresh_context(solver=context.solver):
             main_subshell(*cmd)
     except DryRunExit:
-        # Success — the solve produced a valid plan.
         return set()
     except PackagesNotFoundError as exc:
         pkgs: list[str] = exc._kwargs.get("packages", [])
@@ -236,11 +206,9 @@ def _dry_run_solve(env_data: dict) -> set[str]:
         logger.warning("Unexpected solver error during dry-run: %s", exc)
         return set()
 
-    return set()
-
 
 def load_env_file(path: Path) -> Any:
-    """Load *path* with ruamel.yaml, preserving comments and block style."""
+    """Load path with ruamel.yaml, preserving comments and block style."""
     yaml = _make_yaml()
     with open(path) as fh:
         return yaml.load(fh)

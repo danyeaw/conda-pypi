@@ -330,7 +330,7 @@ def test_dry_run_solve_returns_empty_on_dry_run_exit():
     from conda_pypi.migrate_env import _dry_run_solve
 
     with patch("conda_pypi.migrate_env.main_subshell", side_effect=DryRunExit()):
-        result = _dry_run_solve({"name": "test", "dependencies": ["python"]})
+        result = _dry_run_solve(["python"], ["conda-forge"])
     assert result == set()
 
 
@@ -340,7 +340,7 @@ def test_dry_run_solve_returns_missing_on_packages_not_found():
 
     exc = PackagesNotFoundError(["some-private-pkg"])
     with patch("conda_pypi.migrate_env.main_subshell", side_effect=exc):
-        result = _dry_run_solve({"name": "test", "dependencies": ["python"]})
+        result = _dry_run_solve(["python"], ["conda-forge"])
     assert "some-private-pkg" in result
 
 
@@ -349,7 +349,7 @@ def test_dry_run_solve_returns_empty_on_unexpected_error():
     from conda_pypi.migrate_env import _dry_run_solve
 
     with patch("conda_pypi.migrate_env.main_subshell", side_effect=RuntimeError("boom")):
-        result = _dry_run_solve({"name": "test", "dependencies": ["python"]})
+        result = _dry_run_solve(["python"], ["conda-forge"])
     assert result == set()
 
 
@@ -439,15 +439,16 @@ def test_cli_migrate_env_custom_channel(tmp_path):
         """,
     )
     custom_channel = "https://custom.example.com/wheels"
-    captured_envs: list[dict] = []
+    captured_calls: list[tuple[list[str], list[str]]] = []
 
-    def _capture_dry_run(env_data: dict) -> set[str]:
-        captured_envs.append(env_data)
+    def _capture_dry_run(specs: list[str], channels: list[str]) -> set[str]:
+        captured_calls.append((specs, channels))
         return set()
 
     with patch("conda_pypi.migrate_env._dry_run_solve", side_effect=_capture_dry_run):
         main_subshell("pypi", "migrate-env", "-c", custom_channel, str(env_file))
 
-    assert captured_envs, "solver should have been called"
-    assert custom_channel in captured_envs[0].get("channels", [])
-    assert DEFAULT_WHEELS_CHANNEL not in captured_envs[0].get("channels", [])
+    assert captured_calls, "solver should have been called"
+    _, channels_used = captured_calls[0]
+    assert custom_channel in channels_used
+    assert DEFAULT_WHEELS_CHANNEL not in channels_used
