@@ -33,7 +33,7 @@
 * @jaimergp
 * @jezdez
 * @ForgottenProgramme
-* @pya
+* @pya made their first contribution in https://github.com/conda/conda-pypi/pull/368
 * @travishathaway
 * @conda-bot
 * @dependabot[bot]
