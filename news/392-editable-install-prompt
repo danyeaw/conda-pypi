@@ -1,3 +1,0 @@
-### Enhancements
-
-* Add `--dry-run`, `--yes`, and repeated `--editable` support to editable installs. (#392 via #401)
