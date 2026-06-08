@@ -1,6 +1,6 @@
 ### Enhancements
 
-* Add `conda_pypi_pip_warning` conda setting to enable or disable the warning shown when pip appears in conda environments. (#371)
+* Add `conda_pypi_pip_warning` conda setting to enable or disable the warning shown when pip appears in conda environments. (#375 via #376)
 
 ### Bug fixes
 

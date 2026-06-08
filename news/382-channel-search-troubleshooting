@@ -2,4 +2,4 @@
 
 * Clarify that the `conda-pypi` channel may not appear in the Anaconda.org web UI
   and that `conda search` can fail during the beta because it requests classic
-  `repodata.json` metadata.
+  `repodata.json` metadata. (#382 via #384)
