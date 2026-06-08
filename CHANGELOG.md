@@ -9,7 +9,6 @@
 * Populate additional `info/about.json` fields (`home`, `dev_url`, `doc_url`, `channels`, `extra.recipe`, `extra.generator`) when converting PyPI projects, and truncate `description` to the first paragraph to avoid embedding the full README + CHANGELOG. (#343)
 * Add `external-packages` health check for `conda doctor` to detect packages installed from PyPI and offer `conda doctor --fix` to reinstall eligible packages from configured conda channels. (conda/conda#15582 via #347)
 * Add descriptions to Pixi tasks for development. (#368)
-* Make appearance of documentation consistent with that of conda - Zulip link instead of Element and Discourse links (#311 via #369).
 * Remove the CLI entry point because a CLI doesn't make sense for a plugin. (#327 via #370)
 * Add `conda_pypi_pip_warning` conda setting to enable or disable the warning shown when pip appears in conda environments. (#375 via #376)
 * Refocus the pip warning into a short conda-pypi beta tip. (#385)
@@ -20,6 +19,7 @@
 * Clarify that the `conda-pypi` channel may not appear in the Anaconda.org web UI
   and that `conda search` can fail during the beta because it requests classic
   `repodata.json` metadata. (#382 via #384)
+* Add Zulip instead of Element and Discourse links (#311 via #369).
 * Update command line help text, documentation to clarify that `conda pypi
   install --editable PROJECT` creates and installs a `.conda` package with the
   contents of a [PEP 660 "editable wheel"](https://peps.python.org/pep-0660/),
