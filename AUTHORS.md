@@ -11,6 +11,7 @@ Authors are sorted alphabetically.
 * Katherine Kinnaman
 * Ken Odegard
 * Mahe Iram Khan
+* Mike Müller
 * Ryan Keith
 * Sophia Castellarin
 * Tomasz Beneś
